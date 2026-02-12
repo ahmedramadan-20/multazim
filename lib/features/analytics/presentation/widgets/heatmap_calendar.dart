@@ -30,7 +30,7 @@ class HeatmapCalendar extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Consistency Map', style: Theme.of(context).textTheme.titleMedium),
+        Text('خريطة الالتزام', style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 16),
         SizedBox(
           height: 140, // Enough for 7 squares + spacing + labels

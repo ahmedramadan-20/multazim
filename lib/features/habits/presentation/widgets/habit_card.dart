@@ -7,17 +7,20 @@ import '../cubit/habits_cubit.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../helpers/habit_translation_helper.dart';
 
 class HabitCard extends StatelessWidget {
   final Habit habit;
   final HabitEvent? todayEvent;
   final StreakState? streak;
+  final ({int current, int target})? weeklyProgress;
 
   const HabitCard({
     super.key,
     required this.habit,
     this.todayEvent,
     this.streak,
+    this.weeklyProgress,
   });
 
   bool get isCompleted => todayEvent?.status == HabitEventStatus.completed;
@@ -159,15 +162,46 @@ class HabitCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      habit.category.name.toUpperCase(),
+                      HabitTranslationHelper.categoryName(habit.category),
                       style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                     ),
+                    if (weeklyProgress != null) ...[
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(4),
+                              child: LinearProgressIndicator(
+                                value:
+                                    weeklyProgress!.current /
+                                    weeklyProgress!.target,
+                                backgroundColor: habitColor.withOpacity(0.1),
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  habitColor.withOpacity(0.7),
+                                ),
+                                minHeight: 4,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            '${weeklyProgress!.current}/${weeklyProgress!.target}',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.grey[600],
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ],
                 ),
               ),
 
               // Streak Badge
-              if (streak != null && streak!.currentStreak > 0) ...[
+              if (streak != null && streak!.current > 0) ...[
                 const SizedBox(width: 8),
                 Container(
                   padding: const EdgeInsets.symmetric(
@@ -184,7 +218,7 @@ class HabitCard extends StatelessWidget {
                       const Text('🔥', style: TextStyle(fontSize: 14)),
                       const SizedBox(width: 4),
                       Text(
-                        '${streak!.currentStreak}',
+                        '${streak!.current}',
                         style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,

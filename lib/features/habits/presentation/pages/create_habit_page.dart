@@ -5,6 +5,8 @@ import 'package:uuid/uuid.dart';
 import '../../domain/entities/habit.dart';
 import '../cubit/habits_cubit.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../helpers/habit_translation_helper.dart';
+import 'package:intl/intl.dart';
 
 class CreateHabitPage extends StatefulWidget {
   final Habit? habit;
@@ -31,8 +33,12 @@ class _CreateHabitPageState extends State<CreateHabitPage> {
 
   // Goal
   HabitGoalType _goalType = HabitGoalType.binary;
-  int _targetCount = 10;
-  String _unit = 'mins';
+  final _targetValueController = TextEditingController(text: '10');
+  final _unitController = TextEditingController(text: 'دقيقة');
+
+  int _difficulty = 3;
+  DateTime _startDate = DateTime.now();
+  DateTime? _endDate;
 
   @override
   void initState() {
@@ -41,6 +47,9 @@ class _CreateHabitPageState extends State<CreateHabitPage> {
       final h = widget.habit!;
       _nameController.text = h.name;
       _icon = h.icon;
+      _difficulty = h.difficulty;
+      _startDate = h.startDate;
+      _endDate = h.endDate;
 
       // Parse Color
       try {
@@ -54,21 +63,15 @@ class _CreateHabitPageState extends State<CreateHabitPage> {
       _category = h.category;
       _strictness = h.strictness;
 
-      // Schedule
-      if (h.schedule.type == HabitScheduleType.daily) {
-        _scheduleType = HabitScheduleType.daily;
-      } else if (h.schedule.type == HabitScheduleType.timesPerWeek) {
-        _scheduleType = HabitScheduleType.timesPerWeek;
-        _timesPerWeek = h.schedule.timesPerWeek ?? 3;
-      }
+      // Schedule (Frequency)
+      _scheduleType = h.schedule.type;
+      _timesPerWeek = h.schedule.timesPerWeek ?? 3;
 
-      // Goal
-      if (h.goal.type == HabitGoalType.binary) {
-        _goalType = HabitGoalType.binary;
-      } else if (h.goal.type == HabitGoalType.countBased) {
-        _goalType = HabitGoalType.countBased;
-        _targetCount = h.goal.targetCount ?? 10;
-        _unit = h.goal.unit ?? 'mins';
+      // Goal (Quantitative)
+      _goalType = h.goal.type;
+      if (h.goal.type == HabitGoalType.numeric) {
+        _targetValueController.text = h.goal.targetValue?.toString() ?? '';
+        _unitController.text = h.goal.unit ?? '';
       }
     }
   }
@@ -76,33 +79,44 @@ class _CreateHabitPageState extends State<CreateHabitPage> {
   @override
   void dispose() {
     _nameController.dispose();
+    _targetValueController.dispose();
+    _unitController.dispose();
     super.dispose();
   }
 
   void _saveHabit() {
     if (_formKey.currentState!.validate()) {
-      final schedule = _scheduleType == HabitScheduleType.daily
-          ? const HabitSchedule.daily()
-          : HabitSchedule.timesPerWeek(_timesPerWeek);
+      // 1. Determine Schedule
+      final schedule = switch (_scheduleType) {
+        HabitScheduleType.daily => const HabitSchedule.daily(),
+        HabitScheduleType.timesPerWeek => HabitSchedule.timesPerWeek(
+          _timesPerWeek,
+        ),
+        HabitScheduleType.customDays =>
+          const HabitSchedule.daily(), // Placeholder
+      };
 
+      // 2. Determine Goal
       final goal = _goalType == HabitGoalType.binary
           ? const HabitGoal.binary()
-          : HabitGoal.countBased(_targetCount, _unit);
+          : HabitGoal.numeric(
+              double.tryParse(_targetValueController.text) ?? 1.0,
+              _unitController.text,
+            );
 
       final newHabit = Habit(
-        id: widget.habit?.id ?? const Uuid().v4(), // Preserve ID if editing
+        id: widget.habit?.id ?? const Uuid().v4(),
         name: _nameController.text,
         icon: _icon,
         color: '0xFF${_color.value.toRadixString(16).padLeft(8, '0')}',
         category: _category,
         schedule: schedule,
         goal: goal,
-        difficulty: 1,
+        difficulty: _difficulty,
         strictness: _strictness,
-        startDate:
-            widget.habit?.startDate ?? DateTime.now(), // Preserve start date
-        createdAt:
-            widget.habit?.createdAt ?? DateTime.now(), // Preserve creation date
+        startDate: _startDate,
+        endDate: _endDate,
+        createdAt: widget.habit?.createdAt ?? DateTime.now(),
       );
 
       if (widget.habit != null) {
@@ -181,7 +195,7 @@ class _CreateHabitPageState extends State<CreateHabitPage> {
                 items: HabitCategory.values.map((c) {
                   return DropdownMenuItem(
                     value: c,
-                    child: Text(c.name.toUpperCase()),
+                    child: Text(HabitTranslationHelper.categoryName(c)),
                   );
                 }).toList(),
                 onChanged: (v) => setState(() => _category = v!),
@@ -195,7 +209,7 @@ class _CreateHabitPageState extends State<CreateHabitPage> {
                 items: StrictnessLevel.values.map((l) {
                   return DropdownMenuItem(
                     value: l,
-                    child: Text(l.name.toUpperCase()),
+                    child: Text(HabitTranslationHelper.strictnessName(l)),
                   );
                 }).toList(),
                 onChanged: (v) => setState(() => _strictness = v!),
@@ -235,11 +249,27 @@ class _CreateHabitPageState extends State<CreateHabitPage> {
                 ),
               ),
 
+              const SizedBox(height: 16),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('الصعوبة: $_difficulty / 5'),
+                  Slider(
+                    value: _difficulty.toDouble(),
+                    min: 1,
+                    max: 5,
+                    divisions: 4,
+                    label: '$_difficulty',
+                    onChanged: (v) => setState(() => _difficulty = v.round()),
+                  ),
+                ],
+              ),
+
               const SizedBox(height: 24),
               const Divider(),
               const SizedBox(height: 16),
 
-              // Schedule Type
+              // Unified Frequency
               const Text(
                 'التكرار',
                 style: TextStyle(fontWeight: FontWeight.bold),
@@ -265,25 +295,39 @@ class _CreateHabitPageState extends State<CreateHabitPage> {
                 ],
               ),
               if (_scheduleType == HabitScheduleType.timesPerWeek)
-                Slider(
-                  value: _timesPerWeek.toDouble(),
-                  min: 1,
-                  max: 7,
-                  divisions: 6,
-                  label: '$_timesPerWeek مرات',
-                  onChanged: (v) => setState(() => _timesPerWeek = v.round()),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('الهدف الأسبوعي: $_timesPerWeek مرات'),
+                      Slider(
+                        value: _timesPerWeek.toDouble(),
+                        min: 1,
+                        max: 7,
+                        divisions: 6,
+                        label: '$_timesPerWeek مرات',
+                        onChanged: (v) =>
+                            setState(() => _timesPerWeek = v.round()),
+                      ),
+                    ],
+                  ),
                 ),
 
+              const SizedBox(height: 24),
+              const Divider(),
               const SizedBox(height: 16),
+
+              // Completion Type (Goal)
               const Text(
-                'الهدف',
+                'نوع الهدف',
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
               Row(
                 children: [
                   Expanded(
                     child: RadioListTile<HabitGoalType>(
-                      title: const Text('نعم/لا'),
+                      title: const Text('صح/خطأ'),
                       value: HabitGoalType.binary,
                       groupValue: _goalType,
                       onChanged: (v) => setState(() => _goalType = v!),
@@ -292,34 +336,92 @@ class _CreateHabitPageState extends State<CreateHabitPage> {
                   Expanded(
                     child: RadioListTile<HabitGoalType>(
                       title: const Text('رقمي'),
-                      value: HabitGoalType.countBased,
+                      value: HabitGoalType.numeric,
                       groupValue: _goalType,
                       onChanged: (v) => setState(() => _goalType = v!),
                     ),
                   ),
                 ],
               ),
-              if (_goalType == HabitGoalType.countBased)
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextFormField(
-                        initialValue: _targetCount.toString(),
-                        keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(labelText: 'العدد'),
-                        onChanged: (v) =>
-                            setState(() => _targetCount = int.tryParse(v) ?? 1),
+
+              if (_goalType == HabitGoalType.numeric)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: _targetValueController,
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(
+                            labelText: 'القيمة المستهدفة',
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: TextFormField(
-                        initialValue: _unit,
-                        decoration: const InputDecoration(labelText: 'الوحدة'),
-                        onChanged: (v) => setState(() => _unit = v),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: TextFormField(
+                          controller: _unitController,
+                          decoration: const InputDecoration(
+                            labelText: 'الوحدة (مثلاً: مل، صفحة)',
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
+                ),
+
+              const SizedBox(height: 24),
+              const Divider(),
+              const SizedBox(height: 16),
+              const Text(
+                'التاريخ',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              ListTile(
+                title: const Text('تاريخ البدء'),
+                subtitle: Text(DateFormat('yyyy-MM-dd').format(_startDate)),
+                trailing: const Icon(Icons.calendar_today),
+                onTap: () async {
+                  final picked = await showDatePicker(
+                    context: context,
+                    initialDate: _startDate,
+                    firstDate: DateTime(2000),
+                    lastDate: DateTime(2100),
+                  );
+                  if (picked != null) setState(() => _startDate = picked);
+                },
+              ),
+              SwitchListTile(
+                title: const Text('تاريخ الانتهاء (اختياري)'),
+                value: _endDate != null,
+                onChanged: (v) {
+                  setState(() {
+                    if (v) {
+                      _endDate = DateTime.now().add(const Duration(days: 30));
+                    } else {
+                      _endDate = null;
+                    }
+                  });
+                },
+              ),
+              if (_endDate != null)
+                ListTile(
+                  title: const Text('تاريخ الانتهاء'),
+                  subtitle: Text(DateFormat('yyyy-MM-dd').format(_endDate!)),
+                  trailing: const Icon(Icons.calendar_today),
+                  onTap: () async {
+                    final picked = await showDatePicker(
+                      context: context,
+                      initialDate: _endDate!,
+                      firstDate: DateTime(2000),
+                      lastDate: DateTime(2100),
+                    );
+                    if (picked != null) setState(() => _endDate = picked);
+                  },
                 ),
 
               const SizedBox(height: 32),

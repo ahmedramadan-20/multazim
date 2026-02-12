@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 import '../../domain/entities/habit.dart';
 import '../../domain/entities/habit_event.dart';
 import '../../domain/entities/streak.dart';
+import '../../domain/entities/milestone.dart';
 
 abstract class HabitsState extends Equatable {
   const HabitsState();
@@ -23,14 +24,28 @@ class HabitsLoaded extends HabitsState {
   /// Map habitId → current streak state.
   final Map<String, StreakState> streaks;
 
+  /// Map habitId → {current completions, target} for the current week.
+  final Map<String, ({int current, int target})> weeklyProgress;
+
+  /// Map habitId → list of achieved milestones.
+  final Map<String, List<Milestone>> milestones;
+
   const HabitsLoaded({
     required this.habits,
     required this.todayEvents,
     required this.streaks,
+    required this.weeklyProgress,
+    required this.milestones,
   });
 
   @override
-  List<Object?> get props => [habits, todayEvents, streaks];
+  List<Object?> get props => [
+    habits,
+    todayEvents,
+    streaks,
+    weeklyProgress,
+    milestones,
+  ];
 }
 
 class HabitsError extends HabitsState {

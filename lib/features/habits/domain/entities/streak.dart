@@ -15,44 +15,33 @@ enum StreakType {
   consistency,
 }
 
-/// Immutable snapshot of a habit's current streak state.
 class StreakState extends Equatable {
   /// Number of consecutive streak units (days or windows).
-  final int currentStreak;
+  final int current;
 
   /// Highest streak ever achieved for this habit.
-  final int longestStreak;
-
-  /// Algorithm used to compute this streak.
-  final StreakType type;
-
-  /// Date of the most recent completion event, if any.
-  final DateTime? lastCompletedDate;
+  final int longest;
 
   /// Whether the streak is currently alive (not broken).
   final bool isActive;
 
+  /// Date of the most recent completion event, if any.
+  final DateTime? lastCompletedDate;
+
   const StreakState({
-    required this.currentStreak,
-    required this.longestStreak,
-    required this.type,
-    this.lastCompletedDate,
+    required this.current,
+    required this.longest,
     required this.isActive,
+    this.lastCompletedDate,
   });
 
   /// A zero-state streak for habits with no events yet.
-  const StreakState.empty(this.type)
-    : currentStreak = 0,
-      longestStreak = 0,
-      lastCompletedDate = null,
-      isActive = false;
+  const StreakState.empty()
+    : current = 0,
+      longest = 0,
+      isActive = false,
+      lastCompletedDate = null;
 
   @override
-  List<Object?> get props => [
-    currentStreak,
-    longestStreak,
-    type,
-    lastCompletedDate,
-    isActive,
-  ];
+  List<Object?> get props => [current, longest, isActive, lastCompletedDate];
 }

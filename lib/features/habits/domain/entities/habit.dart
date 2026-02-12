@@ -30,25 +30,27 @@ class HabitSchedule extends Equatable {
   List<Object?> get props => [type, timesPerWeek, customDays];
 }
 
-enum HabitGoalType { binary, countBased }
+enum HabitGoalType { binary, numeric }
 
 class HabitGoal extends Equatable {
   final HabitGoalType type;
-  final int? targetCount; // e.g., 30 (minutes), 10 (pages)
-  final String? unit; // e.g., "mins", "pages"
+  final double? targetValue; // e.g., 500 (ml), 10 (pages)
+  final String? unit; // e.g., "ml", "pages"
+
+  const HabitGoal({required this.type, this.targetValue, this.unit});
 
   const HabitGoal.binary()
     : type = HabitGoalType.binary,
-      targetCount = null,
+      targetValue = null,
       unit = null;
 
-  const HabitGoal.countBased(int count, String unit)
-    : type = HabitGoalType.countBased,
-      targetCount = count,
+  const HabitGoal.numeric(double value, String unit)
+    : type = HabitGoalType.numeric,
+      targetValue = value,
       unit = unit;
 
   @override
-  List<Object?> get props => [type, targetCount, unit];
+  List<Object?> get props => [type, targetValue, unit];
 }
 
 class Habit extends Equatable {

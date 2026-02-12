@@ -25,7 +25,7 @@ class StreakCalculationService {
           ..sort((a, b) => b.date.compareTo(a.date));
 
     if (completed.isEmpty) {
-      return StreakState.empty(config.type);
+      return const StreakState.empty();
     }
 
     return switch (config.type) {
@@ -89,11 +89,10 @@ class StreakCalculationService {
     if (current > longest) longest = current;
 
     return StreakState(
-      currentStreak: current,
-      longestStreak: longest,
-      type: config.type,
-      lastCompletedDate: completed.first.date,
+      current: current,
+      longest: longest,
       isActive: current > 0,
+      lastCompletedDate: completed.first.date,
     );
   }
 
@@ -131,11 +130,10 @@ class StreakCalculationService {
     final longest = _findLongestFlexible(completed, config);
 
     return StreakState(
-      currentStreak: current,
-      longestStreak: current > longest ? current : longest,
-      type: config.type,
-      lastCompletedDate: completed.first.date,
+      current: current,
+      longest: current > longest ? current : longest,
       isActive: current > 0,
+      lastCompletedDate: completed.first.date,
     );
   }
 
@@ -194,11 +192,10 @@ class StreakCalculationService {
     if (current > longest) longest = current;
 
     return StreakState(
-      currentStreak: current,
-      longestStreak: longest,
-      type: config.type,
-      lastCompletedDate: completed.first.date,
+      current: current,
+      longest: longest,
       isActive: current > 0,
+      lastCompletedDate: completed.first.date,
     );
   }
 
@@ -265,11 +262,10 @@ class StreakCalculationService {
         : _findLongestFlexible(completed, config);
 
     return StreakState(
-      currentStreak: current,
-      longestStreak: longest,
-      type: config.type,
-      lastCompletedDate: completed.isNotEmpty ? completed.first.date : null,
+      current: current,
+      longest: longest,
       isActive: current > 0,
+      lastCompletedDate: completed.isNotEmpty ? completed.first.date : null,
     );
   }
 }

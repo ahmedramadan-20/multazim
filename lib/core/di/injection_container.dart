@@ -14,6 +14,10 @@ import '../../features/analytics/data/repositories/analytics_repository_impl.dar
 import '../../features/analytics/domain/repositories/analytics_repository.dart';
 import '../../features/analytics/presentation/cubit/analytics_cubit.dart';
 import '../../features/habits/presentation/cubit/habits_cubit.dart';
+import '../../features/habits/domain/services/streak_service.dart';
+import '../../features/habits/domain/services/weekly_progress_service.dart';
+import '../../features/habits/domain/services/milestone_generator.dart';
+import '../../features/habits/domain/services/streak_recovery_service.dart';
 import '../data/objectbox_store.dart';
 
 // sl = service locator — the single global instance of GetIt
@@ -69,6 +73,10 @@ void _initHabits() {
 
   // Domain Services
   sl.registerLazySingleton(() => StreakCalculationService());
+  sl.registerLazySingleton(() => StreakService(sl()));
+  sl.registerLazySingleton(() => WeeklyProgressService());
+  sl.registerLazySingleton(() => MilestoneGenerator());
+  sl.registerLazySingleton(() => StreakRecoveryService());
 
   // Cubit — registered LAST (depends on all use cases above)
   sl.registerLazySingleton(
@@ -81,6 +89,9 @@ void _initHabits() {
       deleteHabit: sl(),
       repository: sl(),
       streakService: sl(),
+      weeklyProgressService: sl(),
+      milestoneGenerator: sl(),
+      recoveryService: sl(),
     ),
   );
 }
@@ -95,5 +106,11 @@ void _initAnalytics() {
   );
 
   // Cubit
-  sl.registerFactory(() => AnalyticsCubit(repository: sl()));
+  sl.registerFactory(
+    () => AnalyticsCubit(
+      repository: sl(),
+      habitRepository: sl(),
+      streakService: sl(),
+    ),
+  );
 }

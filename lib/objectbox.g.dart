@@ -16,6 +16,8 @@ import 'package:objectbox_flutter_libs/objectbox_flutter_libs.dart';
 
 import 'features/habits/data/models/habit_event_model.dart';
 import 'features/habits/data/models/habit_model.dart';
+import 'features/habits/data/models/milestone_model.dart';
+import 'features/habits/data/models/streak_repair_model.dart';
 
 export 'package:objectbox/objectbox.dart'; // so that callers only have to import this file
 
@@ -182,6 +184,94 @@ final _entities = <obx_int.ModelEntity>[
     relations: <obx_int.ModelRelation>[],
     backlinks: <obx_int.ModelBacklink>[],
   ),
+  obx_int.ModelEntity(
+    id: const obx_int.IdUid(3, 6904585228066674477),
+    name: 'MilestoneModel',
+    lastPropertyId: const obx_int.IdUid(6, 6265783931303929544),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 368067622949042613),
+        name: 'dbId',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 2075577877261505748),
+        name: 'id',
+        type: 9,
+        flags: 2080,
+        indexId: const obx_int.IdUid(5, 4514155943566152528),
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 4212315254158620342),
+        name: 'habitId',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 7532474623262896776),
+        name: 'title',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 2946611472376551259),
+        name: 'days',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(6, 6265783931303929544),
+        name: 'reachedDate',
+        type: 10,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
+  obx_int.ModelEntity(
+    id: const obx_int.IdUid(4, 5750904285678500156),
+    name: 'StreakRepairModel',
+    lastPropertyId: const obx_int.IdUid(5, 371687048399648727),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 8012213346446193584),
+        name: 'dbId',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 7801232738363055124),
+        name: 'id',
+        type: 9,
+        flags: 2080,
+        indexId: const obx_int.IdUid(6, 7022037524467077845),
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 3881763441484534123),
+        name: 'habitId',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 5433690444891070587),
+        name: 'date',
+        type: 10,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 371687048399648727),
+        name: 'reason',
+        type: 9,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
 ];
 
 /// Shortcut for [obx.Store.new] that passes [getObjectBoxModel] and for Flutter
@@ -227,8 +317,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
     // Typically, this is done with `dart run build_runner build`.
     generatorVersion: obx_int.GeneratorVersion.v2025_12_16,
     entities: _entities,
-    lastEntityId: const obx_int.IdUid(2, 5633362972816185087),
-    lastIndexId: const obx_int.IdUid(4, 8356015126913473897),
+    lastEntityId: const obx_int.IdUid(4, 5750904285678500156),
+    lastIndexId: const obx_int.IdUid(6, 7022037524467077845),
     lastRelationId: const obx_int.IdUid(0, 0),
     lastSequenceId: const obx_int.IdUid(0, 0),
     retiredEntityUids: const [],
@@ -402,6 +492,94 @@ obx_int.ModelDefinition getObjectBoxModel() {
         return object;
       },
     ),
+    MilestoneModel: obx_int.EntityDefinition<MilestoneModel>(
+      model: _entities[2],
+      toOneRelations: (MilestoneModel object) => [],
+      toManyRelations: (MilestoneModel object) => {},
+      getId: (MilestoneModel object) => object.dbId,
+      setId: (MilestoneModel object, int id) {
+        object.dbId = id;
+      },
+      objectToFB: (MilestoneModel object, fb.Builder fbb) {
+        final idOffset = fbb.writeString(object.id);
+        final habitIdOffset = fbb.writeString(object.habitId);
+        final titleOffset = fbb.writeString(object.title);
+        fbb.startTable(7);
+        fbb.addInt64(0, object.dbId);
+        fbb.addOffset(1, idOffset);
+        fbb.addOffset(2, habitIdOffset);
+        fbb.addOffset(3, titleOffset);
+        fbb.addInt64(4, object.days);
+        fbb.addInt64(5, object.reachedDate.millisecondsSinceEpoch);
+        fbb.finish(fbb.endTable());
+        return object.dbId;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+
+        final object = MilestoneModel()
+          ..dbId = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0)
+          ..id = const fb.StringReader(
+            asciiOptimization: true,
+          ).vTableGet(buffer, rootOffset, 6, '')
+          ..habitId = const fb.StringReader(
+            asciiOptimization: true,
+          ).vTableGet(buffer, rootOffset, 8, '')
+          ..title = const fb.StringReader(
+            asciiOptimization: true,
+          ).vTableGet(buffer, rootOffset, 10, '')
+          ..days = const fb.Int64Reader().vTableGet(buffer, rootOffset, 12, 0)
+          ..reachedDate = DateTime.fromMillisecondsSinceEpoch(
+            const fb.Int64Reader().vTableGet(buffer, rootOffset, 14, 0),
+          );
+
+        return object;
+      },
+    ),
+    StreakRepairModel: obx_int.EntityDefinition<StreakRepairModel>(
+      model: _entities[3],
+      toOneRelations: (StreakRepairModel object) => [],
+      toManyRelations: (StreakRepairModel object) => {},
+      getId: (StreakRepairModel object) => object.dbId,
+      setId: (StreakRepairModel object, int id) {
+        object.dbId = id;
+      },
+      objectToFB: (StreakRepairModel object, fb.Builder fbb) {
+        final idOffset = fbb.writeString(object.id);
+        final habitIdOffset = fbb.writeString(object.habitId);
+        final reasonOffset = fbb.writeString(object.reason);
+        fbb.startTable(6);
+        fbb.addInt64(0, object.dbId);
+        fbb.addOffset(1, idOffset);
+        fbb.addOffset(2, habitIdOffset);
+        fbb.addInt64(3, object.date.millisecondsSinceEpoch);
+        fbb.addOffset(4, reasonOffset);
+        fbb.finish(fbb.endTable());
+        return object.dbId;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+
+        final object = StreakRepairModel()
+          ..dbId = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0)
+          ..id = const fb.StringReader(
+            asciiOptimization: true,
+          ).vTableGet(buffer, rootOffset, 6, '')
+          ..habitId = const fb.StringReader(
+            asciiOptimization: true,
+          ).vTableGet(buffer, rootOffset, 8, '')
+          ..date = DateTime.fromMillisecondsSinceEpoch(
+            const fb.Int64Reader().vTableGet(buffer, rootOffset, 10, 0),
+          )
+          ..reason = const fb.StringReader(
+            asciiOptimization: true,
+          ).vTableGet(buffer, rootOffset, 12, '');
+
+        return object;
+      },
+    ),
   };
 
   return obx_int.ModelDefinition(model, bindings);
@@ -525,5 +703,66 @@ class HabitModel_ {
   /// See [HabitModel.createdAt].
   static final createdAt = obx.QueryDateProperty<HabitModel>(
     _entities[1].properties[13],
+  );
+}
+
+/// [MilestoneModel] entity fields to define ObjectBox queries.
+class MilestoneModel_ {
+  /// See [MilestoneModel.dbId].
+  static final dbId = obx.QueryIntegerProperty<MilestoneModel>(
+    _entities[2].properties[0],
+  );
+
+  /// See [MilestoneModel.id].
+  static final id = obx.QueryStringProperty<MilestoneModel>(
+    _entities[2].properties[1],
+  );
+
+  /// See [MilestoneModel.habitId].
+  static final habitId = obx.QueryStringProperty<MilestoneModel>(
+    _entities[2].properties[2],
+  );
+
+  /// See [MilestoneModel.title].
+  static final title = obx.QueryStringProperty<MilestoneModel>(
+    _entities[2].properties[3],
+  );
+
+  /// See [MilestoneModel.days].
+  static final days = obx.QueryIntegerProperty<MilestoneModel>(
+    _entities[2].properties[4],
+  );
+
+  /// See [MilestoneModel.reachedDate].
+  static final reachedDate = obx.QueryDateProperty<MilestoneModel>(
+    _entities[2].properties[5],
+  );
+}
+
+/// [StreakRepairModel] entity fields to define ObjectBox queries.
+class StreakRepairModel_ {
+  /// See [StreakRepairModel.dbId].
+  static final dbId = obx.QueryIntegerProperty<StreakRepairModel>(
+    _entities[3].properties[0],
+  );
+
+  /// See [StreakRepairModel.id].
+  static final id = obx.QueryStringProperty<StreakRepairModel>(
+    _entities[3].properties[1],
+  );
+
+  /// See [StreakRepairModel.habitId].
+  static final habitId = obx.QueryStringProperty<StreakRepairModel>(
+    _entities[3].properties[2],
+  );
+
+  /// See [StreakRepairModel.date].
+  static final date = obx.QueryDateProperty<StreakRepairModel>(
+    _entities[3].properties[3],
+  );
+
+  /// See [StreakRepairModel.reason].
+  static final reason = obx.QueryStringProperty<StreakRepairModel>(
+    _entities[3].properties[4],
   );
 }

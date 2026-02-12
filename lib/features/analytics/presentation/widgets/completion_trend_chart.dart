@@ -13,7 +13,7 @@ class CompletionTrendChart extends StatelessWidget {
     if (summaries.isEmpty) {
       return const SizedBox(
         height: 200,
-        child: Center(child: Text('No data for trend chart')),
+        child: Center(child: Text('لا توجد بيانات لمخطط الاتجاه')),
       );
     }
 
@@ -23,10 +23,7 @@ class CompletionTrendChart extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Completion Trend',
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
+        Text('اتجاه الإنجاز', style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 16),
         Container(
           height: 220,

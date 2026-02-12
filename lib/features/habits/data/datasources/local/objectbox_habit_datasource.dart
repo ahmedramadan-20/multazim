@@ -3,6 +3,8 @@ import '../../../../../core/data/objectbox_store.dart';
 import '../../../../../core/error/exceptions.dart';
 import '../../models/habit_model.dart';
 import '../../models/habit_event_model.dart';
+import '../../models/streak_repair_model.dart';
+import '../../models/milestone_model.dart';
 import 'habit_local_datasource.dart';
 import '../../../../../core/utils/date_utils.dart';
 
@@ -13,10 +15,14 @@ import '../../../../../core/utils/date_utils.dart';
 class ObjectBoxHabitDataSource implements HabitLocalDataSource {
   final Box<HabitModel> _habitBox;
   final Box<HabitEventModel> _eventBox;
+  final Box<StreakRepairModel> _repairBox;
+  final Box<MilestoneModel> _milestoneBox;
 
   ObjectBoxHabitDataSource(ObjectBoxStore store)
     : _habitBox = store.store.box<HabitModel>(),
-      _eventBox = store.store.box<HabitEventModel>();
+      _eventBox = store.store.box<HabitEventModel>(),
+      _repairBox = store.store.box<StreakRepairModel>(),
+      _milestoneBox = store.store.box<MilestoneModel>();
 
   @override
   Future<List<HabitModel>> getHabits() async {
@@ -136,6 +142,63 @@ class ObjectBoxHabitDataSource implements HabitLocalDataSource {
       return result;
     } catch (e) {
       throw LocalException('Failed to get today event for habit $habitId: $e');
+    }
+  }
+
+  @override
+  Future<void> saveStreakRepair(StreakRepairModel repair) async {
+    try {
+      _repairBox.put(repair);
+    } catch (e) {
+      throw LocalException('Failed to save streak repair: $e');
+    }
+  }
+
+  @override
+  Future<List<StreakRepairModel>> getStreakRepairs(String habitId) async {
+    try {
+      final query = _repairBox
+          .query(StreakRepairModel_.habitId.equals(habitId))
+          .order(StreakRepairModel_.date, flags: Order.descending)
+          .build();
+      final results = query.find();
+      query.close();
+      return results;
+    } catch (e) {
+      throw LocalException('Failed to get repairs for habit $habitId: $e');
+    }
+  }
+
+  @override
+  Future<void> saveMilestone(MilestoneModel milestone) async {
+    try {
+      _milestoneBox.put(milestone);
+    } catch (e) {
+      throw LocalException('Failed to save milestone: $e');
+    }
+  }
+
+  @override
+  Future<List<MilestoneModel>> getMilestones(String habitId) async {
+    try {
+      final query = _milestoneBox
+          .query(MilestoneModel_.habitId.equals(habitId))
+          .order(MilestoneModel_.reachedDate, flags: Order.descending)
+          .build();
+      final results = query.find();
+      query.close();
+      return results;
+    } catch (e) {
+      throw LocalException('Failed to get milestones for habit $habitId: $e');
+    }
+  }
+
+  @override
+  Future<List<MilestoneModel>> getAllMilestones() async {
+    try {
+      return _milestoneBox.getAll();
+    } catch (e) {
+      throw LocalException('Failed to get all milestones: $e');
     }
   }
 }

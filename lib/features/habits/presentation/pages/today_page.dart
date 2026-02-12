@@ -203,6 +203,7 @@ class _TodayPageState extends State<TodayPage> {
                           habit: habit,
                           todayEvent: state.todayEvents[habit.id],
                           streak: state.streaks[habit.id],
+                          weeklyProgress: state.weeklyProgress[habit.id],
                         ),
                       );
                     },

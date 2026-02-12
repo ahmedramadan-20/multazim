@@ -143,10 +143,87 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "3:6904585228066674477",
+      "lastPropertyId": "6:6265783931303929544",
+      "name": "MilestoneModel",
+      "properties": [
+        {
+          "id": "1:368067622949042613",
+          "name": "dbId",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:2075577877261505748",
+          "name": "id",
+          "indexId": "5:4514155943566152528",
+          "type": 9,
+          "flags": 2080
+        },
+        {
+          "id": "3:4212315254158620342",
+          "name": "habitId",
+          "type": 9
+        },
+        {
+          "id": "4:7532474623262896776",
+          "name": "title",
+          "type": 9
+        },
+        {
+          "id": "5:2946611472376551259",
+          "name": "days",
+          "type": 6
+        },
+        {
+          "id": "6:6265783931303929544",
+          "name": "reachedDate",
+          "type": 10
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "4:5750904285678500156",
+      "lastPropertyId": "5:371687048399648727",
+      "name": "StreakRepairModel",
+      "properties": [
+        {
+          "id": "1:8012213346446193584",
+          "name": "dbId",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:7801232738363055124",
+          "name": "id",
+          "indexId": "6:7022037524467077845",
+          "type": 9,
+          "flags": 2080
+        },
+        {
+          "id": "3:3881763441484534123",
+          "name": "habitId",
+          "type": 9
+        },
+        {
+          "id": "4:5433690444891070587",
+          "name": "date",
+          "type": 10
+        },
+        {
+          "id": "5:371687048399648727",
+          "name": "reason",
+          "type": 9
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "2:5633362972816185087",
-  "lastIndexId": "4:8356015126913473897",
+  "lastEntityId": "4:5750904285678500156",
+  "lastIndexId": "6:7022037524467077845",
   "lastRelationId": "0:0",
   "lastSequenceId": "0:0",
   "modelVersion": 5,

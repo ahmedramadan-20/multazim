@@ -41,7 +41,7 @@ class HabitModel {
     // Serialize Goal
     final goalMap = {
       'type': habit.goal.type.name,
-      if (habit.goal.targetCount != null) 'targetCount': habit.goal.targetCount,
+      if (habit.goal.targetValue != null) 'targetValue': habit.goal.targetValue,
       if (habit.goal.unit != null) 'unit': habit.goal.unit,
     };
 
@@ -67,6 +67,7 @@ class HabitModel {
     final scheduleMap = jsonDecode(scheduleJson) as Map<String, dynamic>;
     final scheduleType = HabitScheduleType.values.firstWhere(
       (e) => e.name == scheduleMap['type'],
+      orElse: () => HabitScheduleType.daily,
     );
 
     HabitSchedule schedule;
@@ -82,18 +83,26 @@ class HabitModel {
 
     // Deserialize Goal
     final goalMap = jsonDecode(goalJson) as Map<String, dynamic>;
-    final goalType = HabitGoalType.values.firstWhere(
-      (e) => e.name == goalMap['type'],
-    );
+    final goalTypeName = goalMap['type'] as String;
 
     HabitGoal goal;
-    if (goalType == HabitGoalType.binary) {
+    final legacyGoalType = HabitGoalType.values.where(
+      (e) => e.name == goalTypeName,
+    );
+    if (legacyGoalType.isNotEmpty) {
+      final type = legacyGoalType.first;
+      if (type == HabitGoalType.binary) {
+        goal = const HabitGoal.binary();
+      } else {
+        goal = HabitGoal.numeric(
+          (goalMap['targetValue'] as num).toDouble(),
+          goalMap['unit'] as String,
+        );
+      }
+    } else if (goalTypeName == 'daily' || goalTypeName == 'weeklyCount') {
       goal = const HabitGoal.binary();
     } else {
-      goal = HabitGoal.countBased(
-        goalMap['targetCount'] as int,
-        goalMap['unit'] as String,
-      );
+      goal = const HabitGoal.binary();
     }
 
     return Habit(
@@ -101,12 +110,16 @@ class HabitModel {
       name: name,
       icon: icon,
       color: color,
-      category: HabitCategory.values.firstWhere((e) => e.name == categoryName),
+      category: HabitCategory.values.firstWhere(
+        (e) => e.name == categoryName,
+        orElse: () => HabitCategory.other,
+      ),
       schedule: schedule,
       goal: goal,
       difficulty: difficulty,
       strictness: StrictnessLevel.values.firstWhere(
         (e) => e.name == strictnessName,
+        orElse: () => StrictnessLevel.medium,
       ),
       startDate: startDate,
       endDate: endDate,

@@ -64,25 +64,25 @@ class StatisticsGrid extends StatelessWidget {
       childAspectRatio: 1.5,
       children: [
         _StatCard(
-          title: 'Completion Rate',
+          title: 'معدل الإنجاز',
           value: '${(avgRate * 100).toStringAsFixed(1)}%',
           icon: Icons.pie_chart,
           color: Colors.blue,
         ),
         _StatCard(
-          title: 'Perfect Days',
+          title: 'أيام مثالية',
           value: '$totalPerfectDays',
           icon: Icons.star,
           color: Colors.amber,
         ),
         _StatCard(
-          title: 'Best Day',
+          title: 'أفضل يوم',
           value: bestDayStr,
           icon: Icons.calendar_today,
           color: Colors.green,
         ),
         _StatCard(
-          title: 'Perfect Streak',
+          title: 'تتابع مثالي',
           value: '$currentPerfectStreak',
           icon: Icons.local_fire_department,
           color: Colors.orange,
@@ -92,7 +92,15 @@ class StatisticsGrid extends StatelessWidget {
   }
 
   String _weekdayName(int weekday) {
-    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const days = [
+      'الاثنين',
+      'الثلاثاء',
+      'الأربعاء',
+      'الخميس',
+      'الجمعة',
+      'السبت',
+      'الأحد',
+    ];
     if (weekday >= 1 && weekday <= 7) return days[weekday - 1];
     return '';
   }
