@@ -9,6 +9,12 @@ import '../../features/habits/domain/usecases/complete_habit_usecase.dart';
 import '../../features/habits/domain/usecases/skip_habit_usecase.dart';
 import '../../features/habits/domain/usecases/delete_habit_usecase.dart';
 import '../../features/habits/domain/usecases/update_habit_usecase.dart';
+import '../../features/habits/domain/usecases/get_today_event_usecase.dart';
+import '../../features/habits/domain/usecases/get_events_for_habit_usecase.dart';
+import '../../features/habits/domain/usecases/get_streak_repairs_usecase.dart';
+import '../../features/habits/domain/usecases/get_milestones_usecase.dart';
+import '../../features/habits/domain/usecases/save_milestone_usecase.dart';
+import '../../features/habits/domain/usecases/save_streak_repair_usecase.dart';
 import '../../features/habits/domain/services/streak_calculation_service.dart';
 import '../../features/analytics/data/repositories/analytics_repository_impl.dart';
 import '../../features/analytics/domain/repositories/analytics_repository.dart';
@@ -70,6 +76,12 @@ void _initHabits() {
   sl.registerLazySingleton(() => SkipHabitUseCase(sl()));
   sl.registerLazySingleton(() => UpdateHabitUseCase(sl()));
   sl.registerLazySingleton(() => DeleteHabitUseCase(sl()));
+  sl.registerLazySingleton(() => GetTodayEventUseCase(sl()));
+  sl.registerLazySingleton(() => GetEventsForHabitUseCase(sl()));
+  sl.registerLazySingleton(() => GetStreakRepairsUseCase(sl()));
+  sl.registerLazySingleton(() => GetMilestonesUseCase(sl()));
+  sl.registerLazySingleton(() => SaveMilestoneUseCase(sl()));
+  sl.registerLazySingleton(() => SaveStreakRepairUseCase(sl()));
 
   // Domain Services
   sl.registerLazySingleton(() => StreakCalculationService());
@@ -87,7 +99,12 @@ void _initHabits() {
       skipHabit: sl(),
       updateHabit: sl(),
       deleteHabit: sl(),
-      repository: sl(),
+      getTodayEvent: sl(),
+      getEventsForHabit: sl(),
+      getStreakRepairs: sl(),
+      getMilestones: sl(),
+      saveMilestone: sl(),
+      saveStreakRepair: sl(),
       streakService: sl(),
       weeklyProgressService: sl(),
       milestoneGenerator: sl(),

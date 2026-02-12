@@ -14,8 +14,12 @@ import '../../domain/usecases/complete_habit_usecase.dart';
 import '../../domain/usecases/skip_habit_usecase.dart';
 import '../../domain/usecases/delete_habit_usecase.dart';
 import '../../domain/usecases/update_habit_usecase.dart';
-import '../../domain/repositories/habit_repository.dart';
-
+import '../../domain/usecases/get_today_event_usecase.dart';
+import '../../domain/usecases/get_events_for_habit_usecase.dart';
+import '../../domain/usecases/get_streak_repairs_usecase.dart';
+import '../../domain/usecases/get_milestones_usecase.dart';
+import '../../domain/usecases/save_milestone_usecase.dart';
+import '../../domain/usecases/save_streak_repair_usecase.dart';
 import 'habits_state.dart';
 
 class HabitsCubit extends Cubit<HabitsState> {
@@ -25,7 +29,12 @@ class HabitsCubit extends Cubit<HabitsState> {
   final SkipHabitUseCase _skipHabit;
   final UpdateHabitUseCase _updateHabit;
   final DeleteHabitUseCase _deleteHabit;
-  final HabitRepository _repository;
+  final GetTodayEventUseCase _getTodayEvent;
+  final GetEventsForHabitUseCase _getEventsForHabit;
+  final GetStreakRepairsUseCase _getStreakRepairs;
+  final GetMilestonesUseCase _getMilestones;
+  final SaveMilestoneUseCase _saveMilestone;
+  final SaveStreakRepairUseCase _saveStreakRepair;
   final StreakService _streakService;
   final WeeklyProgressService _weeklyProgressService;
   final MilestoneGenerator _milestoneGenerator;
@@ -38,7 +47,12 @@ class HabitsCubit extends Cubit<HabitsState> {
     required SkipHabitUseCase skipHabit,
     required UpdateHabitUseCase updateHabit,
     required DeleteHabitUseCase deleteHabit,
-    required HabitRepository repository,
+    required GetTodayEventUseCase getTodayEvent,
+    required GetEventsForHabitUseCase getEventsForHabit,
+    required GetStreakRepairsUseCase getStreakRepairs,
+    required GetMilestonesUseCase getMilestones,
+    required SaveMilestoneUseCase saveMilestone,
+    required SaveStreakRepairUseCase saveStreakRepair,
     required StreakService streakService,
     required WeeklyProgressService weeklyProgressService,
     required MilestoneGenerator milestoneGenerator,
@@ -49,7 +63,12 @@ class HabitsCubit extends Cubit<HabitsState> {
        _skipHabit = skipHabit,
        _updateHabit = updateHabit,
        _deleteHabit = deleteHabit,
-       _repository = repository,
+       _getTodayEvent = getTodayEvent,
+       _getEventsForHabit = getEventsForHabit,
+       _getStreakRepairs = getStreakRepairs,
+       _getMilestones = getMilestones,
+       _saveMilestone = saveMilestone,
+       _saveStreakRepair = saveStreakRepair,
        _streakService = streakService,
        _weeklyProgressService = weeklyProgressService,
        _milestoneGenerator = milestoneGenerator,
@@ -69,11 +88,11 @@ class HabitsCubit extends Cubit<HabitsState> {
 
       for (final habit in habits) {
         // Today's event
-        todayEvents[habit.id] = await _repository.getTodayEvent(habit.id);
+        todayEvents[habit.id] = await _getTodayEvent(habit.id);
 
         // Fetch events and repairs for streak/progress calculation
-        final events = await _repository.getEventsForHabit(habit.id);
-        final repairs = await _repository.getStreakRepairs(habit.id);
+        final events = await _getEventsForHabit(habit.id);
+        final repairs = await _getStreakRepairs(habit.id);
 
         // Streak calculation
         streaks[habit.id] = _streakService.calculateStreak(
@@ -90,7 +109,7 @@ class HabitsCubit extends Cubit<HabitsState> {
         );
 
         // Milestones
-        milestones[habit.id] = await _repository.getMilestones(habit.id);
+        milestones[habit.id] = await _getMilestones(habit.id);
       }
 
       emit(
@@ -132,7 +151,7 @@ class HabitsCubit extends Cubit<HabitsState> {
           );
 
           if (milestone != null) {
-            await _repository.saveMilestone(milestone);
+            await _saveMilestone(milestone);
             // Refresh to show newly added milestone
             await loadHabits();
           }
@@ -148,7 +167,7 @@ class HabitsCubit extends Cubit<HabitsState> {
     if (currentState is! HabitsLoaded) return;
 
     try {
-      final repairs = await _repository.getStreakRepairs(habitId);
+      final repairs = await _getStreakRepairs(habitId);
       final now = DateTime.now();
 
       if (!_recoveryService.canRepair(habitId, repairs, now)) {
@@ -176,7 +195,7 @@ class HabitsCubit extends Cubit<HabitsState> {
         reason: reason,
       );
 
-      await _repository.saveStreakRepair(repair);
+      await _saveStreakRepair(repair);
       await loadHabits();
     } catch (e) {
       emit(HabitsError(e.toString()));
