@@ -1,21 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'core/constants/env.dart';
 import 'core/di/injection_container.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'core/constants/app_constants.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 Future<void> main() async {
-  // Required before any async work in main()
   WidgetsFlutterBinding.ensureInitialized();
-  // Load .env file first — everything else depends on it
-  await dotenv.load(fileName: '.env');
-  // Initialize Supabase
-  // Replace with your actual URL and anon key from supabase.com → project settings
-  await Supabase.initialize(url: Env.supabaseUrl, anonKey: Env.supabaseAnonKey);
+
+  // DEFERRED TO PHASE 5 — local-only for now
+  // await dotenv.load(fileName: '.env');
+  // await Supabase.initialize(
+  //   url: Env.supabaseUrl,
+  //   anonKey: Env.supabaseAnonKey,
+  // );
+
+  // Initialize date formatting for Arabic
+  await initializeDateFormatting('ar', null);
 
   // Wire all dependencies
   await initDependencies();

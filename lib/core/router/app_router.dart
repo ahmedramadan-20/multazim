@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../features/habits/presentation/cubit/habits_cubit.dart';
+import '../../features/habits/presentation/pages/create_habit_page.dart';
+import '../../features/habits/presentation/pages/today_page.dart';
+import '../../features/habits/domain/entities/habit.dart';
+import '../di/injection_container.dart';
 import 'app_routes.dart';
 
 // Temporary placeholder pages — we'll replace these in Phase 1
@@ -64,11 +70,14 @@ final appRouter = GoRouter(
       true, // prints route changes in console — remove in production
   routes: [
     ShellRoute(
-      builder: (context, state, child) => AppShell(child: child),
+      builder: (context, state, child) => BlocProvider.value(
+        value: sl<HabitsCubit>(),
+        child: AppShell(child: child),
+      ),
       routes: [
         GoRoute(
           path: AppRoutes.today,
-          builder: (context, state) => const _PlaceholderPage('اليوم'),
+          builder: (context, state) => const TodayPage(),
         ),
         GoRoute(
           path: AppRoutes.analytics,
@@ -80,7 +89,13 @@ final appRouter = GoRouter(
     // Outside the shell — no bottom nav on these screens
     GoRoute(
       path: AppRoutes.createHabit,
-      builder: (context, state) => const _PlaceholderPage('عادة جديدة'),
+      builder: (context, state) {
+        final habit = state.extra as Habit?;
+        return BlocProvider.value(
+          value: sl<HabitsCubit>(),
+          child: CreateHabitPage(habit: habit),
+        );
+      },
     ),
 
     GoRoute(
