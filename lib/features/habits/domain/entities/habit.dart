@@ -82,6 +82,34 @@ class Habit extends Equatable {
     required this.createdAt,
   });
 
+  /// Checks if the habit is scheduled for a specific date
+  bool isScheduledOn(DateTime date) {
+    // 1. Check date range
+    // Normalize dates to remove time components for accurate comparison
+    final checkDate = DateTime(date.year, date.month, date.day);
+    final start = DateTime(startDate.year, startDate.month, startDate.day);
+
+    if (checkDate.isBefore(start)) return false;
+
+    if (endDate != null) {
+      final end = DateTime(endDate!.year, endDate!.month, endDate!.day);
+      if (checkDate.isAfter(end)) return false;
+    }
+
+    // 2. Check schedule type
+    switch (schedule.type) {
+      case HabitScheduleType.daily:
+        return true;
+      case HabitScheduleType.customDays:
+        // weekday is 1(Mon)..7(Sun)
+        return schedule.customDays?.contains(checkDate.weekday) ?? false;
+      case HabitScheduleType.timesPerWeek:
+        // For 'times per week', it's technically "available" any day.
+        // We count it as scheduled.
+        return true;
+    }
+  }
+
   @override
   List<Object?> get props => [
     id,

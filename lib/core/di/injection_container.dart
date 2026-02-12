@@ -10,6 +10,9 @@ import '../../features/habits/domain/usecases/skip_habit_usecase.dart';
 import '../../features/habits/domain/usecases/delete_habit_usecase.dart';
 import '../../features/habits/domain/usecases/update_habit_usecase.dart';
 import '../../features/habits/domain/services/streak_calculation_service.dart';
+import '../../features/analytics/data/repositories/analytics_repository_impl.dart';
+import '../../features/analytics/domain/repositories/analytics_repository.dart';
+import '../../features/analytics/presentation/cubit/analytics_cubit.dart';
 import '../../features/habits/presentation/cubit/habits_cubit.dart';
 import '../data/objectbox_store.dart';
 
@@ -39,6 +42,7 @@ Future<void> initDependencies() async {
   // ─────────────────────────────────────────────────
 
   _initHabits();
+  _initAnalytics();
 }
 
 // ─────────────────────────────────────────────────
@@ -79,4 +83,17 @@ void _initHabits() {
       streakService: sl(),
     ),
   );
+}
+
+// ─────────────────────────────────────────────────
+// ANALYTICS
+// ─────────────────────────────────────────────────
+void _initAnalytics() {
+  // Repository
+  sl.registerLazySingleton<AnalyticsRepository>(
+    () => AnalyticsRepositoryImpl(sl()),
+  );
+
+  // Cubit
+  sl.registerFactory(() => AnalyticsCubit(repository: sl()));
 }

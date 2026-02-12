@@ -6,7 +6,10 @@ class AppRoutes {
   static const String createHabit = '/habit/new';
   static const String habitDetail = '/habit/:id';
 
+  static const String habitDetailAnalytics = '/habit/:id/analytics';
+
   // Helper — builds the actual path with the ID filled in
   // Usage: AppRoutes.habitDetailPath('abc123') → '/habit/abc123'
   static String habitDetailPath(String id) => '/habit/$id';
+  static String habitDetailAnalyticsPath(String id) => '/habit/$id/analytics';
 }

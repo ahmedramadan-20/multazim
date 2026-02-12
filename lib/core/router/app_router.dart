@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:multazim/features/analytics/presentation/pages/analytics_page.dart';
+import 'package:multazim/features/analytics/presentation/pages/habit_detail_analytics_page.dart';
 import '../../features/habits/presentation/cubit/habits_cubit.dart';
 import '../../features/habits/presentation/pages/create_habit_page.dart';
 import '../../features/habits/presentation/pages/today_page.dart';
@@ -8,7 +10,7 @@ import '../../features/habits/domain/entities/habit.dart';
 import '../di/injection_container.dart';
 import 'app_routes.dart';
 
-// Temporary placeholder pages — we'll replace these in Phase 1
+// Temporary placeholder pages — we'll replace these as we build features
 class _PlaceholderPage extends StatelessWidget {
   final String name;
   const _PlaceholderPage(this.name);
@@ -22,20 +24,15 @@ class _PlaceholderPage extends StatelessWidget {
 }
 
 // The shell wraps all main screens with the bottom navigation bar.
-// child = the currently active screen, swapped by go_router automatically.
 class AppShell extends StatelessWidget {
   final Widget child;
   const AppShell({super.key, required this.child});
 
-  // Maps each tab to its route
   static const List<String> _tabs = [AppRoutes.today, AppRoutes.analytics];
 
-  // Returns 0 or 1 based on which route is active
   int _currentIndex(BuildContext context) {
     final location = GoRouterState.of(context).uri.path;
-    // Analytics tab is active
     if (location.startsWith(AppRoutes.analytics)) return 1;
-    // Today tab is active (default)
     return 0;
   }
 
@@ -63,11 +60,9 @@ class AppShell extends StatelessWidget {
   }
 }
 
-// The router instance — imported by main.dart
 final appRouter = GoRouter(
   initialLocation: AppRoutes.today,
-  debugLogDiagnostics:
-      true, // prints route changes in console — remove in production
+  debugLogDiagnostics: true,
   routes: [
     ShellRoute(
       builder: (context, state, child) => BlocProvider.value(
@@ -81,12 +76,11 @@ final appRouter = GoRouter(
         ),
         GoRoute(
           path: AppRoutes.analytics,
-          builder: (context, state) => const _PlaceholderPage('التحليل'),
+          builder: (context, state) => const AnalyticsPage(),
         ),
       ],
     ),
 
-    // Outside the shell — no bottom nav on these screens
     GoRoute(
       path: AppRoutes.createHabit,
       builder: (context, state) {
@@ -101,9 +95,17 @@ final appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.habitDetail,
       builder: (context, state) {
-        // Extract the :id parameter from the URL
         final habitId = state.pathParameters['id']!;
         return _PlaceholderPage('تفاصيل: $habitId');
+      },
+    ),
+
+    // Analytics Detail
+    GoRoute(
+      path: AppRoutes.habitDetailAnalytics,
+      builder: (context, state) {
+        final habitId = state.pathParameters['id']!;
+        return HabitDetailAnalyticsPage(habitId: habitId);
       },
     ),
   ],
