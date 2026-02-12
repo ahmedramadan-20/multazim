@@ -202,6 +202,7 @@ class _TodayPageState extends State<TodayPage> {
                         child: HabitCard(
                           habit: habit,
                           todayEvent: state.todayEvents[habit.id],
+                          streak: state.streaks[habit.id],
                         ),
                       );
                     },

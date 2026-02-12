@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/entities/habit.dart';
 import '../../domain/entities/habit_event.dart';
+import '../../domain/entities/streak.dart';
 import '../cubit/habits_cubit.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/router/app_routes.dart';
@@ -9,9 +10,15 @@ import '../../../../core/theme/app_colors.dart';
 
 class HabitCard extends StatelessWidget {
   final Habit habit;
-  final HabitEvent? todayEvent; // null if not done today
+  final HabitEvent? todayEvent;
+  final StreakState? streak;
 
-  const HabitCard({super.key, required this.habit, this.todayEvent});
+  const HabitCard({
+    super.key,
+    required this.habit,
+    this.todayEvent,
+    this.streak,
+  });
 
   bool get isCompleted => todayEvent?.status == HabitEventStatus.completed;
   bool get isSkipped => todayEvent?.status == HabitEventStatus.skipped;
@@ -158,6 +165,36 @@ class HabitCard extends StatelessWidget {
                   ],
                 ),
               ),
+
+              // Streak Badge
+              if (streak != null && streak!.currentStreak > 0) ...[
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text('🔥', style: TextStyle(fontSize: 14)),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${streak!.currentStreak}',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.deepOrange,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
 
               // Status Icon
               if (isCompleted)

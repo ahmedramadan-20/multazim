@@ -9,6 +9,7 @@ import '../../features/habits/domain/usecases/complete_habit_usecase.dart';
 import '../../features/habits/domain/usecases/skip_habit_usecase.dart';
 import '../../features/habits/domain/usecases/delete_habit_usecase.dart';
 import '../../features/habits/domain/usecases/update_habit_usecase.dart';
+import '../../features/habits/domain/services/streak_calculation_service.dart';
 import '../../features/habits/presentation/cubit/habits_cubit.dart';
 import '../data/objectbox_store.dart';
 
@@ -62,6 +63,9 @@ void _initHabits() {
   sl.registerLazySingleton(() => UpdateHabitUseCase(sl()));
   sl.registerLazySingleton(() => DeleteHabitUseCase(sl()));
 
+  // Domain Services
+  sl.registerLazySingleton(() => StreakCalculationService());
+
   // Cubit — registered LAST (depends on all use cases above)
   sl.registerLazySingleton(
     () => HabitsCubit(
@@ -72,6 +76,7 @@ void _initHabits() {
       updateHabit: sl(),
       deleteHabit: sl(),
       repository: sl(),
+      streakService: sl(),
     ),
   );
 }
