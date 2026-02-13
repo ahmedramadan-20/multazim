@@ -20,22 +20,13 @@ class MilestoneGenerator {
         return Milestone(
           id: const Uuid().v4(),
           habitId: habitId,
-          title: _getMilestoneTitle(threshold),
-          days: threshold,
-          reachedDate: now,
+          type: 'streak_$threshold',
+          streakValue: threshold,
+          achievedAt: now,
+          createdAt: DateTime.now(),
         );
       }
     }
     return null;
-  }
-
-  String _getMilestoneTitle(int days) {
-    return switch (days) {
-      7 => 'أسبوع من الالتزام',
-      30 => 'شهر من الإنجاز',
-      100 => '١٠٠ يوم من العطاء',
-      365 => 'سنة من التغيير',
-      _ => '$days يوم من الالتزام',
-    };
   }
 }

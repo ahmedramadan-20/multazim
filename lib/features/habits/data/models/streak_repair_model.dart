@@ -12,6 +12,7 @@ class StreakRepairModel {
   late String habitId;
   late DateTime date;
   late String reason;
+  late DateTime createdAt;
 
   StreakRepairModel();
 
@@ -20,10 +21,17 @@ class StreakRepairModel {
       ..id = repair.id
       ..habitId = repair.habitId
       ..date = repair.date
-      ..reason = repair.reason;
+      ..reason = repair.reason
+      ..createdAt = repair.createdAt;
   }
 
   StreakRepair toEntity() {
-    return StreakRepair(id: id, habitId: habitId, date: date, reason: reason);
+    return StreakRepair(
+      id: id,
+      habitId: habitId,
+      date: date,
+      reason: reason,
+      createdAt: createdAt,
+    );
   }
 }

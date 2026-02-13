@@ -193,6 +193,7 @@ class HabitsCubit extends Cubit<HabitsState> {
         habitId: habitId,
         date: repairDate,
         reason: reason,
+        createdAt: DateTime.now(),
       );
 
       await _saveStreakRepair(repair);

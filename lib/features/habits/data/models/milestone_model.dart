@@ -9,29 +9,47 @@ class MilestoneModel {
   @Unique()
   late String id;
 
+  /// FK
   late String habitId;
-  late String title;
-  late int days;
-  late DateTime reachedDate;
+
+  /// e.g. 'streak_7', 'streak_30', 'streak_100'
+  late String type;
+
+  /// Actual streak count reached
+  late int streakValue;
+
+  /// When the milestone was achieved
+  late DateTime achievedAt;
+
+  /// For sync & ordering
+  late DateTime createdAt;
 
   MilestoneModel();
 
+  // ─────────────────────────────────────────────
+  // Domain → Model
+  // ─────────────────────────────────────────────
   factory MilestoneModel.fromEntity(Milestone milestone) {
     return MilestoneModel()
       ..id = milestone.id
       ..habitId = milestone.habitId
-      ..title = milestone.title
-      ..days = milestone.days
-      ..reachedDate = milestone.reachedDate;
+      ..type = milestone.type
+      ..streakValue = milestone.streakValue
+      ..achievedAt = milestone.achievedAt
+      ..createdAt = milestone.createdAt;
   }
 
+  // ─────────────────────────────────────────────
+  // Model → Domain
+  // ─────────────────────────────────────────────
   Milestone toEntity() {
     return Milestone(
       id: id,
       habitId: habitId,
-      title: title,
-      days: days,
-      reachedDate: reachedDate,
+      type: type,
+      streakValue: streakValue,
+      achievedAt: achievedAt,
+      createdAt: createdAt,
     );
   }
 }

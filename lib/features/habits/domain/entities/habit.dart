@@ -8,7 +8,7 @@ enum HabitScheduleType { daily, timesPerWeek, customDays }
 
 class HabitSchedule extends Equatable {
   final HabitScheduleType type;
-  final int? timesPerWeek; // e.g., 3
+  final int? timesPerWeek; // e.g. 3
   final List<int>? customDays; // 1=Mon … 7=Sun
 
   const HabitSchedule.daily()
@@ -34,20 +34,15 @@ enum HabitGoalType { binary, numeric }
 
 class HabitGoal extends Equatable {
   final HabitGoalType type;
-  final double? targetValue; // e.g., 500 (ml), 10 (pages)
-  final String? unit; // e.g., "ml", "pages"
+  final double? targetValue;
+  final String? unit;
 
-  const HabitGoal({required this.type, this.targetValue, this.unit});
+  const HabitGoal._({required this.type, this.targetValue, this.unit});
 
-  const HabitGoal.binary()
-    : type = HabitGoalType.binary,
-      targetValue = null,
-      unit = null;
+  const HabitGoal.binary() : this._(type: HabitGoalType.binary);
 
   const HabitGoal.numeric(double value, String unit)
-    : type = HabitGoalType.numeric,
-      targetValue = value,
-      unit = unit;
+    : this._(type: HabitGoalType.numeric, targetValue: value, unit: unit);
 
   @override
   List<Object?> get props => [type, targetValue, unit];
@@ -61,12 +56,15 @@ class Habit extends Equatable {
   final HabitCategory category;
   final HabitSchedule schedule;
   final HabitGoal goal;
-  final int difficulty; // 1-5
+  final int difficulty; // 1–5
   final StrictnessLevel strictness;
   final DateTime startDate;
-  final DateTime? endDate; // nullable = no end
+  final DateTime? endDate;
   final bool isActive;
   final DateTime createdAt;
+
+  /// Used for sync & conflict resolution
+  final int version;
 
   const Habit({
     required this.id,
@@ -82,12 +80,11 @@ class Habit extends Equatable {
     this.endDate,
     this.isActive = true,
     required this.createdAt,
+    this.version = 1,
   });
 
-  /// Checks if the habit is scheduled for a specific date
+  /// Determines whether the habit is *available* on a given date
   bool isScheduledOn(DateTime date) {
-    // 1. Check date range
-    // Normalize dates to remove time components for accurate comparison
     final checkDate = DateTime(date.year, date.month, date.day);
     final start = DateTime(startDate.year, startDate.month, startDate.day);
 
@@ -98,16 +95,13 @@ class Habit extends Equatable {
       if (checkDate.isAfter(end)) return false;
     }
 
-    // 2. Check schedule type
     switch (schedule.type) {
       case HabitScheduleType.daily:
         return true;
       case HabitScheduleType.customDays:
-        // weekday is 1(Mon)..7(Sun)
         return schedule.customDays?.contains(checkDate.weekday) ?? false;
       case HabitScheduleType.timesPerWeek:
-        // For 'times per week', it's technically "available" any day.
-        // We count it as scheduled.
+        // Availability is daily; completion is validated elsewhere
         return true;
     }
   }
@@ -127,5 +121,6 @@ class Habit extends Equatable {
     endDate,
     isActive,
     createdAt,
+    version,
   ];
 }

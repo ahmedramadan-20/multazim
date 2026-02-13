@@ -4,18 +4,18 @@ import '../../domain/entities/habit_event.dart';
 import '../../domain/entities/streak.dart';
 import '../../domain/entities/milestone.dart';
 
-abstract class HabitsState extends Equatable {
+sealed class HabitsState extends Equatable {
   const HabitsState();
 
   @override
   List<Object?> get props => [];
 }
 
-class HabitsInitial extends HabitsState {}
+final class HabitsInitial extends HabitsState {}
 
-class HabitsLoading extends HabitsState {}
+final class HabitsLoading extends HabitsState {}
 
-class HabitsLoaded extends HabitsState {
+final class HabitsLoaded extends HabitsState {
   final List<Habit> habits;
 
   /// Map habitId → today's event (if any) for O(1) lookup.
@@ -48,7 +48,7 @@ class HabitsLoaded extends HabitsState {
   ];
 }
 
-class HabitsError extends HabitsState {
+final class HabitsError extends HabitsState {
   final String message;
 
   const HabitsError(this.message);

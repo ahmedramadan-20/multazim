@@ -108,7 +108,7 @@ class _CreateHabitPageState extends State<CreateHabitPage> {
         id: widget.habit?.id ?? const Uuid().v4(),
         name: _nameController.text,
         icon: _icon,
-        color: '0xFF${_color.value.toRadixString(16).padLeft(8, '0')}',
+        color: '0xFF${_color.toARGB32().toRadixString(16).padLeft(8, '0')}',
         category: _category,
         schedule: schedule,
         goal: goal,
@@ -164,7 +164,7 @@ class _CreateHabitPageState extends State<CreateHabitPage> {
                       width: 64,
                       height: 64,
                       decoration: BoxDecoration(
-                        color: _color.withOpacity(0.2),
+                        color: _color.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       alignment: Alignment.center,

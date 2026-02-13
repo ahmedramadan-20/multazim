@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'core/constants/env.dart';
 import 'core/di/injection_container.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
@@ -9,12 +12,9 @@ import 'package:intl/date_symbol_data_local.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // DEFERRED TO PHASE 5 — local-only for now
-  // await dotenv.load(fileName: '.env');
-  // await Supabase.initialize(
-  //   url: Env.supabaseUrl,
-  //   anonKey: Env.supabaseAnonKey,
-  // );
+  // ENABLED IN PHASE 5 — sync/cloud phase
+  await dotenv.load(fileName: '.env');
+  await Supabase.initialize(url: Env.supabaseUrl, anonKey: Env.supabaseAnonKey);
 
   // Initialize date formatting for Arabic
   await initializeDateFormatting('ar', null);

@@ -7,14 +7,16 @@ class StreakRepair extends Equatable {
   final String habitId;
   final DateTime date;
   final String reason;
+  final DateTime createdAt;
 
   const StreakRepair({
     required this.id,
     required this.habitId,
     required this.date,
     required this.reason,
+    required this.createdAt,
   });
 
   @override
-  List<Object?> get props => [id, habitId, date, reason];
+  List<Object?> get props => [id, habitId, date, reason, createdAt];
 }

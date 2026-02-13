@@ -5,31 +5,40 @@ import '../../domain/entities/habit.dart';
 @Entity()
 class HabitModel {
   @Id()
-  int dbId = 0; // ObjectBox requires int ID
+  int dbId = 0; // ObjectBox internal ID
 
   @Unique()
-  late String id; // our UUID
+  late String id; // UUID (shared with Supabase)
 
   late String name;
   late String icon;
   late String color;
-  late String categoryName; // stored as string
-  late String scheduleJson; // stored as JSON string
-  late String goalJson; // stored as JSON string
-  late int
-  difficulty; // Stored, but currently unused in entity, keeping for future
-  late String strictnessName; // stored as string
+
+  // Stored as string enums
+  late String categoryName;
+  late String scheduleType;
+  late String goalType;
+  late String strictnessName;
+
+  // Serialized JSON blobs
+  late String scheduleJson;
+  late String goalJson;
+
+  late int difficulty;
   late DateTime startDate;
   DateTime? endDate;
   late bool isActive;
   late DateTime createdAt;
 
-  // ObjectBox requires default constructor
+  // Used for conflict resolution with Supabase
+  late int version;
+
   HabitModel();
 
-  // Convert from domain entity
+  // ─────────────────────────────────────────────
+  // Domain → Data
+  // ─────────────────────────────────────────────
   factory HabitModel.fromEntity(Habit habit) {
-    // Serialize Schedule
     final scheduleMap = {
       'type': habit.schedule.type.name,
       if (habit.schedule.timesPerWeek != null)
@@ -38,7 +47,6 @@ class HabitModel {
         'customDays': habit.schedule.customDays,
     };
 
-    // Serialize Goal
     final goalMap = {
       'type': habit.goal.type.name,
       if (habit.goal.targetValue != null) 'targetValue': habit.goal.targetValue,
@@ -51,6 +59,8 @@ class HabitModel {
       ..icon = habit.icon
       ..color = habit.color
       ..categoryName = habit.category.name
+      ..scheduleType = habit.schedule.type.name
+      ..goalType = habit.goal.type.name
       ..scheduleJson = jsonEncode(scheduleMap)
       ..goalJson = jsonEncode(goalMap)
       ..strictnessName = habit.strictness.name
@@ -58,50 +68,54 @@ class HabitModel {
       ..startDate = habit.startDate
       ..endDate = habit.endDate
       ..isActive = habit.isActive
-      ..createdAt = habit.createdAt;
+      ..createdAt = habit.createdAt
+      ..version = habit.version;
   }
 
-  // Convert to domain entity
+  // ─────────────────────────────────────────────
+  // Data → Domain
+  // ─────────────────────────────────────────────
   Habit toEntity() {
-    // Deserialize Schedule
     final scheduleMap = jsonDecode(scheduleJson) as Map<String, dynamic>;
-    final scheduleType = HabitScheduleType.values.firstWhere(
+    final scheduleTypeEnum = HabitScheduleType.values.firstWhere(
       (e) => e.name == scheduleMap['type'],
       orElse: () => HabitScheduleType.daily,
     );
 
-    HabitSchedule schedule;
-    if (scheduleType == HabitScheduleType.daily) {
-      schedule = const HabitSchedule.daily();
-    } else if (scheduleType == HabitScheduleType.timesPerWeek) {
-      schedule = HabitSchedule.timesPerWeek(scheduleMap['timesPerWeek'] as int);
-    } else {
-      schedule = HabitSchedule.custom(
-        List<int>.from(scheduleMap['customDays']),
-      );
+    final HabitSchedule schedule;
+    switch (scheduleTypeEnum) {
+      case HabitScheduleType.timesPerWeek:
+        schedule = HabitSchedule.timesPerWeek(
+          scheduleMap['timesPerWeek'] as int,
+        );
+        break;
+      case HabitScheduleType.customDays:
+        schedule = HabitSchedule.custom(
+          List<int>.from(scheduleMap['customDays']),
+        );
+        break;
+      default:
+        schedule = const HabitSchedule.daily();
     }
 
-    // Deserialize Goal
     final goalMap = jsonDecode(goalJson) as Map<String, dynamic>;
-    final goalTypeName = goalMap['type'] as String;
+    final goalTypeName = goalMap['type'] as String?;
 
     HabitGoal goal;
-    final legacyGoalType = HabitGoalType.values.where(
-      (e) => e.name == goalTypeName,
-    );
-    if (legacyGoalType.isNotEmpty) {
-      final type = legacyGoalType.first;
-      if (type == HabitGoalType.binary) {
-        goal = const HabitGoal.binary();
-      } else {
-        goal = HabitGoal.numeric(
-          (goalMap['targetValue'] as num).toDouble(),
-          goalMap['unit'] as String,
-        );
-      }
-    } else if (goalTypeName == 'daily' || goalTypeName == 'weeklyCount') {
-      goal = const HabitGoal.binary();
+    final knownGoal = HabitGoalType.values
+        .where((e) => e.name == goalTypeName)
+        .toList();
+
+    if (knownGoal.isNotEmpty) {
+      final type = knownGoal.first;
+      goal = type == HabitGoalType.numeric
+          ? HabitGoal.numeric(
+              (goalMap['targetValue'] as num).toDouble(),
+              goalMap['unit'] as String,
+            )
+          : const HabitGoal.binary();
     } else {
+      // Legacy or corrupted data fallback
       goal = const HabitGoal.binary();
     }
 
@@ -125,6 +139,7 @@ class HabitModel {
       endDate: endDate,
       isActive: isActive,
       createdAt: createdAt,
+      version: version,
     );
   }
 }

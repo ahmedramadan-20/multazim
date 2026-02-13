@@ -1,6 +1,14 @@
 import 'package:get_it/get_it.dart';
+import 'package:multazim/features/analytics/domain/usecases/get_habit_by_id_for_analytics_usecase.dart';
+import 'package:multazim/features/analytics/domain/usecases/get_habit_events_for_analytics_usecase.dart';
+import 'package:multazim/features/analytics/domain/usecases/get_habit_milestones_for_analytics_usecase.dart';
+import 'package:multazim/features/analytics/domain/usecases/get_habit_repairs_for_analytics_usecase.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../features/analytics/domain/usecases/get_habits_for_analytics_usecase.dart';
 import '../../features/habits/data/datasources/local/habit_local_datasource.dart';
 import '../../features/habits/data/datasources/local/objectbox_habit_datasource.dart';
+import '../../features/habits/data/datasources/remote/habit_remote_datasource.dart';
+import '../../features/habits/data/datasources/remote/supabase_habit_datasource.dart';
 import '../../features/habits/data/repositories/habit_repository_impl.dart';
 import '../../features/habits/domain/repositories/habit_repository.dart';
 import '../../features/habits/domain/usecases/get_habits_usecase.dart';
@@ -63,10 +71,12 @@ void _initHabits() {
   sl.registerLazySingleton<HabitLocalDataSource>(
     () => ObjectBoxHabitDataSource(sl()),
   );
-
+  sl.registerLazySingleton<HabitRemoteDataSource>(
+    () => SupabaseHabitDataSource(Supabase.instance.client),
+  );
   // Repository
   sl.registerLazySingleton<HabitRepository>(
-    () => HabitRepositoryImpl(localDataSource: sl()),
+    () => HabitRepositoryImpl(localDataSource: sl(), remoteDataSource: sl()),
   );
 
   // Use Cases — ALL registered BEFORE Cubit
@@ -117,6 +127,13 @@ void _initHabits() {
 // ANALYTICS
 // ─────────────────────────────────────────────────
 void _initAnalytics() {
+  // Use Cases — Analytics needs to query Habits data
+  sl.registerLazySingleton(() => GetHabitsForAnalyticsUseCase(sl()));
+  sl.registerLazySingleton(() => GetHabitEventsForAnalyticsUseCase(sl()));
+  sl.registerLazySingleton(() => GetHabitRepairsForAnalyticsUseCase(sl()));
+  sl.registerLazySingleton(() => GetHabitByIdForAnalyticsUseCase(sl()));
+  sl.registerLazySingleton(() => GetHabitMilestonesForAnalyticsUseCase(sl()));
+
   // Repository
   sl.registerLazySingleton<AnalyticsRepository>(
     () => AnalyticsRepositoryImpl(sl()),
@@ -126,7 +143,11 @@ void _initAnalytics() {
   sl.registerFactory(
     () => AnalyticsCubit(
       repository: sl(),
-      habitRepository: sl(),
+      getHabits: sl(),
+      getHabitEvents: sl(),
+      getHabitRepairs: sl(),
+      getHabitById: sl(),
+      getHabitMilestones: sl(),
       streakService: sl(),
     ),
   );

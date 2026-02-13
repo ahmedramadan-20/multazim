@@ -52,7 +52,7 @@ class _TodayPageState extends State<TodayPage> {
               itemCount: 7,
               itemBuilder: (context, index) {
                 final date = DateTime.now().add(Duration(days: index - 3));
-                final isToday = index == 3;
+                final isToday = DateUtils.isSameDay(date, DateTime.now());
                 return Container(
                   width: 60,
                   margin: const EdgeInsets.symmetric(horizontal: 4),

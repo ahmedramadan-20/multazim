@@ -183,7 +183,7 @@ class ObjectBoxHabitDataSource implements HabitLocalDataSource {
     try {
       final query = _milestoneBox
           .query(MilestoneModel_.habitId.equals(habitId))
-          .order(MilestoneModel_.reachedDate, flags: Order.descending)
+          .order(MilestoneModel_.achievedAt, flags: Order.descending)
           .build();
       final results = query.find();
       query.close();

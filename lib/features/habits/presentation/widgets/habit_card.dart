@@ -43,11 +43,11 @@ class HabitCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
       elevation: isCompleted ? 0 : 2,
-      color: isCompleted ? habitColor.withOpacity(0.1) : Colors.white,
+      color: isCompleted ? habitColor.withValues(alpha: 0.1) : Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: isCompleted
-            ? BorderSide(color: habitColor.withOpacity(0.5))
+            ? BorderSide(color: habitColor.withValues(alpha: 0.5))
             : BorderSide.none,
       ),
       child: InkWell(
@@ -134,7 +134,7 @@ class HabitCard extends StatelessWidget {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: habitColor.withOpacity(0.2),
+                  color: habitColor.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 alignment: Alignment.center,
@@ -176,9 +176,9 @@ class HabitCard extends StatelessWidget {
                                 value:
                                     weeklyProgress!.current /
                                     weeklyProgress!.target,
-                                backgroundColor: habitColor.withOpacity(0.1),
+                                backgroundColor: habitColor.withValues(alpha: 0.1),
                                 valueColor: AlwaysStoppedAnimation<Color>(
-                                  habitColor.withOpacity(0.7),
+                                  habitColor.withValues(alpha: 0.7),
                                 ),
                                 minHeight: 4,
                               ),

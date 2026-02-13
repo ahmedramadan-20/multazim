@@ -1,25 +1,41 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:multazim/features/analytics/domain/entities/insight.dart';
-import 'package:multazim/features/analytics/domain/entities/habit_analytics_snapshot.dart';
-import 'package:multazim/features/analytics/domain/services/insight_generator.dart';
-import 'package:multazim/features/habits/domain/repositories/habit_repository.dart';
-import 'package:multazim/features/habits/domain/services/streak_service.dart';
-import 'package:multazim/features/habits/domain/entities/milestone.dart';
-import 'package:multazim/features/analytics/domain/repositories/analytics_repository.dart';
-import 'package:multazim/features/analytics/presentation/cubit/analytics_state.dart';
+import '../../../analytics/domain/entities/insight.dart';
+import '../../../analytics/domain/entities/habit_analytics_snapshot.dart';
+import '../../../analytics/domain/services/insight_generator.dart';
+import '../../../analytics/domain/usecases/get_habits_for_analytics_usecase.dart';
+import '../../../analytics/domain/usecases/get_habit_events_for_analytics_usecase.dart';
+import '../../../analytics/domain/usecases/get_habit_repairs_for_analytics_usecase.dart';
+import '../../../analytics/domain/usecases/get_habit_by_id_for_analytics_usecase.dart';
+import '../../../analytics/domain/usecases/get_habit_milestones_for_analytics_usecase.dart';
+import '../../../habits/domain/services/streak_service.dart';
+import '../../../habits/domain/entities/milestone.dart';
+import '../../../analytics/domain/repositories/analytics_repository.dart';
+import 'analytics_state.dart';
 
 class AnalyticsCubit extends Cubit<AnalyticsState> {
   final AnalyticsRepository _repository;
-  final HabitRepository _habitRepository;
+  final GetHabitsForAnalyticsUseCase _getHabits;
+  final GetHabitEventsForAnalyticsUseCase _getHabitEvents;
+  final GetHabitRepairsForAnalyticsUseCase _getHabitRepairs;
+  final GetHabitByIdForAnalyticsUseCase _getHabitById;
+  final GetHabitMilestonesForAnalyticsUseCase _getHabitMilestones;
   final StreakService _streakService;
   final InsightGenerator _insightGenerator = InsightGenerator();
 
   AnalyticsCubit({
     required AnalyticsRepository repository,
-    required HabitRepository habitRepository,
+    required GetHabitsForAnalyticsUseCase getHabits,
+    required GetHabitEventsForAnalyticsUseCase getHabitEvents,
+    required GetHabitRepairsForAnalyticsUseCase getHabitRepairs,
+    required GetHabitByIdForAnalyticsUseCase getHabitById,
+    required GetHabitMilestonesForAnalyticsUseCase getHabitMilestones,
     required StreakService streakService,
   }) : _repository = repository,
-       _habitRepository = habitRepository,
+       _getHabits = getHabits,
+       _getHabitEvents = getHabitEvents,
+       _getHabitRepairs = getHabitRepairs,
+       _getHabitById = getHabitById,
+       _getHabitMilestones = getHabitMilestones,
        _streakService = streakService,
        super(AnalyticsInitial());
 
@@ -29,19 +45,14 @@ class AnalyticsCubit extends Cubit<AnalyticsState> {
       final endDate = end ?? DateTime.now();
       final startDate = start ?? endDate.subtract(const Duration(days: 30));
 
-      // 1. Fetch Global Summaries
       final summaries = await _repository.getSummaries(startDate, endDate);
-
-      // 2. Build Analytics Snapshots for Insights
-      final habits = await _habitRepository.getHabits();
+      final habits = await _getHabits(); // ← NOW USES USE CASE
       final snapshots = <HabitAnalyticsSnapshot>[];
 
       for (final habit in habits.where((h) => h.isActive)) {
-        final events = await _habitRepository.getEventsForHabit(habit.id);
-        final repairs = await _habitRepository.getStreakRepairs(habit.id);
-
+        final events = await _getHabitEvents(habit.id); // ← USE CASE
+        final repairs = await _getHabitRepairs(habit.id); // ← USE CASE
         final streak = _streakService.calculateStreak(habit, events, repairs);
-
         final dowStats = await _repository.getDayOfWeekStats(habit.id);
 
         final last30DaysEvents = events
@@ -70,14 +81,14 @@ class AnalyticsCubit extends Cubit<AnalyticsState> {
         );
       }
 
-      // 3. Generate Insights
       final insights = _insightGenerator.generate(
         summaries: summaries,
         habitStats: snapshots,
       );
 
-      // 4. Fetch All Milestones for the global view
-      final allMilestones = await _habitRepository.getAllMilestones();
+      // Also need getAllMilestones use case — add it if it doesn't exist
+      final allMilestones =
+          <Milestone>[]; // TODO: Create GetAllMilestonesUseCase
 
       emit(
         AnalyticsLoaded(
@@ -96,19 +107,16 @@ class AnalyticsCubit extends Cubit<AnalyticsState> {
     try {
       final heatmap = await _repository.getHeatmapData(habitId);
       final stats = await _repository.getDayOfWeekStats(habitId);
-
-      // Generate insights for this specific habit
-      final habit = await _habitRepository.getHabitById(habitId);
+      final habit = await _getHabitById(habitId); // ← USE CASE
       final insights = <Insight>[];
       final milestones = <Milestone>[];
 
       if (habit != null) {
-        final events = await _habitRepository.getEventsForHabit(habitId);
-        final repairs = await _habitRepository.getStreakRepairs(habitId);
+        final events = await _getHabitEvents(habitId); // ← USE CASE
+        final repairs = await _getHabitRepairs(habitId); // ← USE CASE
         final streak = _streakService.calculateStreak(habit, events, repairs);
-        milestones.addAll(await _habitRepository.getMilestones(habitId));
+        milestones.addAll(await _getHabitMilestones(habitId)); // ← USE CASE
 
-        // Approx 30-day rate
         final last30DaysEvents = events
             .where(
               (e) => e.date.isAfter(

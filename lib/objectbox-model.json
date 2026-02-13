@@ -65,7 +65,7 @@
     },
     {
       "id": "2:5633362972816185087",
-      "lastPropertyId": "14:1522494561595009745",
+      "lastPropertyId": "17:7691399056863607593",
       "name": "HabitModel",
       "properties": [
         {
@@ -140,13 +140,28 @@
           "id": "14:1522494561595009745",
           "name": "createdAt",
           "type": 10
+        },
+        {
+          "id": "15:2457180072204869424",
+          "name": "scheduleType",
+          "type": 9
+        },
+        {
+          "id": "16:8734013089873975176",
+          "name": "goalType",
+          "type": 9
+        },
+        {
+          "id": "17:7691399056863607593",
+          "name": "version",
+          "type": 6
         }
       ],
       "relations": []
     },
     {
       "id": "3:6904585228066674477",
-      "lastPropertyId": "6:6265783931303929544",
+      "lastPropertyId": "10:6107026147658341134",
       "name": "MilestoneModel",
       "properties": [
         {
@@ -168,18 +183,23 @@
           "type": 9
         },
         {
-          "id": "4:7532474623262896776",
-          "name": "title",
+          "id": "7:8358341458795371744",
+          "name": "type",
           "type": 9
         },
         {
-          "id": "5:2946611472376551259",
-          "name": "days",
+          "id": "8:4513155954528369105",
+          "name": "streakValue",
           "type": 6
         },
         {
-          "id": "6:6265783931303929544",
-          "name": "reachedDate",
+          "id": "9:1561674803404220012",
+          "name": "achievedAt",
+          "type": 10
+        },
+        {
+          "id": "10:6107026147658341134",
+          "name": "createdAt",
           "type": 10
         }
       ],
@@ -230,7 +250,11 @@
   "modelVersionParserMinimum": 5,
   "retiredEntityUids": [],
   "retiredIndexUids": [],
-  "retiredPropertyUids": [],
+  "retiredPropertyUids": [
+    7532474623262896776,
+    2946611472376551259,
+    6265783931303929544
+  ],
   "retiredRelationUids": [],
   "version": 1
 }

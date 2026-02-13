@@ -92,7 +92,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
     id: const obx_int.IdUid(2, 5633362972816185087),
     name: 'HabitModel',
-    lastPropertyId: const obx_int.IdUid(14, 1522494561595009745),
+    lastPropertyId: const obx_int.IdUid(17, 7691399056863607593),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
@@ -180,6 +180,24 @@ final _entities = <obx_int.ModelEntity>[
         type: 10,
         flags: 0,
       ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(15, 2457180072204869424),
+        name: 'scheduleType',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(16, 8734013089873975176),
+        name: 'goalType',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(17, 7691399056863607593),
+        name: 'version',
+        type: 6,
+        flags: 0,
+      ),
     ],
     relations: <obx_int.ModelRelation>[],
     backlinks: <obx_int.ModelBacklink>[],
@@ -187,7 +205,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
     id: const obx_int.IdUid(3, 6904585228066674477),
     name: 'MilestoneModel',
-    lastPropertyId: const obx_int.IdUid(6, 6265783931303929544),
+    lastPropertyId: const obx_int.IdUid(10, 6107026147658341134),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
@@ -210,20 +228,26 @@ final _entities = <obx_int.ModelEntity>[
         flags: 0,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(4, 7532474623262896776),
-        name: 'title',
+        id: const obx_int.IdUid(7, 8358341458795371744),
+        name: 'type',
         type: 9,
         flags: 0,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(5, 2946611472376551259),
-        name: 'days',
+        id: const obx_int.IdUid(8, 4513155954528369105),
+        name: 'streakValue',
         type: 6,
         flags: 0,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(6, 6265783931303929544),
-        name: 'reachedDate',
+        id: const obx_int.IdUid(9, 1561674803404220012),
+        name: 'achievedAt',
+        type: 10,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(10, 6107026147658341134),
+        name: 'createdAt',
         type: 10,
         flags: 0,
       ),
@@ -323,7 +347,11 @@ obx_int.ModelDefinition getObjectBoxModel() {
     lastSequenceId: const obx_int.IdUid(0, 0),
     retiredEntityUids: const [],
     retiredIndexUids: const [],
-    retiredPropertyUids: const [],
+    retiredPropertyUids: const [
+      7532474623262896776,
+      2946611472376551259,
+      6265783931303929544,
+    ],
     retiredRelationUids: const [],
     modelVersion: 5,
     modelVersionParserMinimum: 5,
@@ -415,7 +443,9 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final scheduleJsonOffset = fbb.writeString(object.scheduleJson);
         final goalJsonOffset = fbb.writeString(object.goalJson);
         final strictnessNameOffset = fbb.writeString(object.strictnessName);
-        fbb.startTable(15);
+        final scheduleTypeOffset = fbb.writeString(object.scheduleType);
+        final goalTypeOffset = fbb.writeString(object.goalType);
+        fbb.startTable(18);
         fbb.addInt64(0, object.dbId);
         fbb.addOffset(1, idOffset);
         fbb.addOffset(2, nameOffset);
@@ -430,6 +460,9 @@ obx_int.ModelDefinition getObjectBoxModel() {
         fbb.addInt64(11, object.endDate?.millisecondsSinceEpoch);
         fbb.addBool(12, object.isActive);
         fbb.addInt64(13, object.createdAt.millisecondsSinceEpoch);
+        fbb.addOffset(14, scheduleTypeOffset);
+        fbb.addOffset(15, goalTypeOffset);
+        fbb.addInt64(16, object.version);
         fbb.finish(fbb.endTable());
         return object.dbId;
       },
@@ -487,6 +520,18 @@ obx_int.ModelDefinition getObjectBoxModel() {
           )
           ..createdAt = DateTime.fromMillisecondsSinceEpoch(
             const fb.Int64Reader().vTableGet(buffer, rootOffset, 30, 0),
+          )
+          ..scheduleType = const fb.StringReader(
+            asciiOptimization: true,
+          ).vTableGet(buffer, rootOffset, 32, '')
+          ..goalType = const fb.StringReader(
+            asciiOptimization: true,
+          ).vTableGet(buffer, rootOffset, 34, '')
+          ..version = const fb.Int64Reader().vTableGet(
+            buffer,
+            rootOffset,
+            36,
+            0,
           );
 
         return object;
@@ -503,14 +548,15 @@ obx_int.ModelDefinition getObjectBoxModel() {
       objectToFB: (MilestoneModel object, fb.Builder fbb) {
         final idOffset = fbb.writeString(object.id);
         final habitIdOffset = fbb.writeString(object.habitId);
-        final titleOffset = fbb.writeString(object.title);
-        fbb.startTable(7);
+        final typeOffset = fbb.writeString(object.type);
+        fbb.startTable(11);
         fbb.addInt64(0, object.dbId);
         fbb.addOffset(1, idOffset);
         fbb.addOffset(2, habitIdOffset);
-        fbb.addOffset(3, titleOffset);
-        fbb.addInt64(4, object.days);
-        fbb.addInt64(5, object.reachedDate.millisecondsSinceEpoch);
+        fbb.addOffset(6, typeOffset);
+        fbb.addInt64(7, object.streakValue);
+        fbb.addInt64(8, object.achievedAt.millisecondsSinceEpoch);
+        fbb.addInt64(9, object.createdAt.millisecondsSinceEpoch);
         fbb.finish(fbb.endTable());
         return object.dbId;
       },
@@ -526,12 +572,20 @@ obx_int.ModelDefinition getObjectBoxModel() {
           ..habitId = const fb.StringReader(
             asciiOptimization: true,
           ).vTableGet(buffer, rootOffset, 8, '')
-          ..title = const fb.StringReader(
+          ..type = const fb.StringReader(
             asciiOptimization: true,
-          ).vTableGet(buffer, rootOffset, 10, '')
-          ..days = const fb.Int64Reader().vTableGet(buffer, rootOffset, 12, 0)
-          ..reachedDate = DateTime.fromMillisecondsSinceEpoch(
-            const fb.Int64Reader().vTableGet(buffer, rootOffset, 14, 0),
+          ).vTableGet(buffer, rootOffset, 16, '')
+          ..streakValue = const fb.Int64Reader().vTableGet(
+            buffer,
+            rootOffset,
+            18,
+            0,
+          )
+          ..achievedAt = DateTime.fromMillisecondsSinceEpoch(
+            const fb.Int64Reader().vTableGet(buffer, rootOffset, 20, 0),
+          )
+          ..createdAt = DateTime.fromMillisecondsSinceEpoch(
+            const fb.Int64Reader().vTableGet(buffer, rootOffset, 22, 0),
           );
 
         return object;
@@ -704,6 +758,21 @@ class HabitModel_ {
   static final createdAt = obx.QueryDateProperty<HabitModel>(
     _entities[1].properties[13],
   );
+
+  /// See [HabitModel.scheduleType].
+  static final scheduleType = obx.QueryStringProperty<HabitModel>(
+    _entities[1].properties[14],
+  );
+
+  /// See [HabitModel.goalType].
+  static final goalType = obx.QueryStringProperty<HabitModel>(
+    _entities[1].properties[15],
+  );
+
+  /// See [HabitModel.version].
+  static final version = obx.QueryIntegerProperty<HabitModel>(
+    _entities[1].properties[16],
+  );
 }
 
 /// [MilestoneModel] entity fields to define ObjectBox queries.
@@ -723,19 +792,24 @@ class MilestoneModel_ {
     _entities[2].properties[2],
   );
 
-  /// See [MilestoneModel.title].
-  static final title = obx.QueryStringProperty<MilestoneModel>(
+  /// See [MilestoneModel.type].
+  static final type = obx.QueryStringProperty<MilestoneModel>(
     _entities[2].properties[3],
   );
 
-  /// See [MilestoneModel.days].
-  static final days = obx.QueryIntegerProperty<MilestoneModel>(
+  /// See [MilestoneModel.streakValue].
+  static final streakValue = obx.QueryIntegerProperty<MilestoneModel>(
     _entities[2].properties[4],
   );
 
-  /// See [MilestoneModel.reachedDate].
-  static final reachedDate = obx.QueryDateProperty<MilestoneModel>(
+  /// See [MilestoneModel.achievedAt].
+  static final achievedAt = obx.QueryDateProperty<MilestoneModel>(
     _entities[2].properties[5],
+  );
+
+  /// See [MilestoneModel.createdAt].
+  static final createdAt = obx.QueryDateProperty<MilestoneModel>(
+    _entities[2].properties[6],
   );
 }
 

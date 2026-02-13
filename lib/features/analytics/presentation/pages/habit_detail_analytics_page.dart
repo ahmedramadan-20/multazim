@@ -104,7 +104,7 @@ class _HabitAnalyticsView extends StatelessWidget {
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    'سلسلة ${milestone.days} أيام',
+                                    'سلسلة ${milestone.streakValue} أيام',
                                     style: const TextStyle(
                                       fontSize: 13,
                                       fontWeight: FontWeight.bold,
@@ -114,7 +114,7 @@ class _HabitAnalyticsView extends StatelessWidget {
                                     DateFormat(
                                       'MMM d',
                                       'ar',
-                                    ).format(milestone.reachedDate),
+                                    ).format(milestone.achievedAt),
                                     style: TextStyle(
                                       fontSize: 11,
                                       color: Colors.grey[600],
