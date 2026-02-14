@@ -55,38 +55,44 @@ class StatisticsGrid extends StatelessWidget {
       }
     }
 
-    return GridView.count(
-      crossAxisCount: 2,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: 16,
-      crossAxisSpacing: 16,
-      childAspectRatio: 1.5,
+    return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        _StatCard(
-          title: 'معدل الإنجاز',
-          value: '${(avgRate * 100).toStringAsFixed(1)}%',
-          icon: Icons.pie_chart,
-          color: Colors.blue,
+        GridView.count(
+          crossAxisCount: 2,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          mainAxisSpacing: 16,
+          crossAxisSpacing: 16,
+          childAspectRatio: 1.5,
+          children: [
+            _StatCard(
+              title: 'معدل الإنجاز',
+              value: '${(avgRate * 100).toStringAsFixed(1)}%',
+              icon: Icons.pie_chart,
+              color: Colors.blue,
+            ),
+            _StatCard(
+              title: 'أيام مثالية',
+              value: '$totalPerfectDays',
+              icon: Icons.star,
+              color: Colors.amber,
+            ),
+            _StatCard(
+              title: 'أفضل يوم',
+              value: bestDayStr,
+              icon: Icons.calendar_today,
+              color: Colors.green,
+            ),
+            _StatCard(
+              title: 'تتابع مثالي',
+              value: '$currentPerfectStreak',
+              icon: Icons.local_fire_department,
+              color: Colors.orange,
+            ),
+          ],
         ),
-        _StatCard(
-          title: 'أيام مثالية',
-          value: '$totalPerfectDays',
-          icon: Icons.star,
-          color: Colors.amber,
-        ),
-        _StatCard(
-          title: 'أفضل يوم',
-          value: bestDayStr,
-          icon: Icons.calendar_today,
-          color: Colors.green,
-        ),
-        _StatCard(
-          title: 'تتابع مثالي',
-          value: '$currentPerfectStreak',
-          icon: Icons.local_fire_department,
-          color: Colors.orange,
-        ),
+        const SizedBox(height: 8),
       ],
     );
   }
@@ -128,7 +134,7 @@ class _StatCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),

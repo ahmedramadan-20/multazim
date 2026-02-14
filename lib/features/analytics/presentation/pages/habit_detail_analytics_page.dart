@@ -61,14 +61,33 @@ class _HabitAnalyticsView extends StatelessWidget {
                     const SizedBox(height: 24),
                   ],
                   if (heatmapData.isNotEmpty) ...[
-                    Text(
-                      'خريطة النشاط',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
+                    Card(
+                      elevation: 0,
+                      clipBehavior: Clip.antiAlias,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        side: BorderSide(
+                          color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5),
+                        ),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'خريطة الالتزام',
+                              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey[700],
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            HeatmapCalendar(data: heatmapData, endDate: DateTime.now()),
+                          ],
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    HeatmapCalendar(data: heatmapData, endDate: DateTime.now()),
                     const SizedBox(height: 32),
                   ],
 

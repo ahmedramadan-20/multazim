@@ -27,27 +27,44 @@ class HeatmapCalendar extends StatelessWidget {
     // or just standard GridView with horizontal scroll?
     // GitHub style is horizontal scrolling, columns = weeks.
 
-    return Column(
+    return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('خريطة الالتزام', style: Theme.of(context).textTheme.titleMedium),
-        const SizedBox(height: 16),
-        SizedBox(
-          height: 140, // Enough for 7 squares + spacing + labels
-          child: GridView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: dates.length,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 7, // 7 days per column
-              mainAxisSpacing: 4,
-              crossAxisSpacing: 4,
-              childAspectRatio: 1.0,
+        // Weekday labels
+        const SizedBox(
+          height: 140,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('ح', style: TextStyle(fontSize: 10, color: Colors.grey)),
+              Text('ن', style: TextStyle(fontSize: 10, color: Colors.grey)),
+              Text('ث', style: TextStyle(fontSize: 10, color: Colors.grey)),
+              Text('ر', style: TextStyle(fontSize: 10, color: Colors.grey)),
+              Text('خ', style: TextStyle(fontSize: 10, color: Colors.grey)),
+              Text('ج', style: TextStyle(fontSize: 10, color: Colors.grey)),
+              Text('س', style: TextStyle(fontSize: 10, color: Colors.grey)),
+            ],
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: SizedBox(
+            height: 140,
+            child: GridView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: dates.length,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 7,
+                mainAxisSpacing: 4,
+                crossAxisSpacing: 4,
+                childAspectRatio: 1.0,
+              ),
+              itemBuilder: (context, index) {
+                final date = dates[index];
+                final value = data[date] ?? 0.0;
+                return _HeatmapCell(date: date, value: value);
+              },
             ),
-            itemBuilder: (context, index) {
-              final date = dates[index];
-              final value = data[date] ?? 0.0;
-              return _HeatmapCell(date: date, value: value);
-            },
           ),
         ),
       ],
@@ -65,7 +82,9 @@ class _HeatmapCell extends StatelessWidget {
   Widget build(BuildContext context) {
     // Color intensity
     final color = value > 0
-        ? Colors.green.withOpacity((0.2 + (value * 0.8)).clamp(0.0, 1.0))
+        ? Colors.green.withValues(
+            alpha: (0.2 + (value * 0.8)).clamp(0.0, 1.0),
+          )
         : Theme.of(context).colorScheme.surfaceContainerHighest;
 
     return Tooltip(

@@ -20,91 +20,85 @@ class CompletionTrendChart extends StatelessWidget {
     // Sort by date just in case
     final data = List.of(summaries)..sort((a, b) => a.date.compareTo(b.date));
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('اتجاه الإنجاز', style: Theme.of(context).textTheme.titleMedium),
-        const SizedBox(height: 16),
-        Container(
-          height: 220,
-          padding: const EdgeInsets.only(
-            right: 16,
-            left: 0,
-            top: 24,
-            bottom: 0,
-          ),
-          child: LineChart(
-            LineChartData(
-              gridData: const FlGridData(show: false),
-              titlesData: FlTitlesData(
-                bottomTitles: AxisTitles(
-                  sideTitles: SideTitles(
-                    showTitles: true,
-                    getTitlesWidget: (value, meta) {
-                      final index = value.toInt();
-                      if (index < 0 || index >= data.length)
-                        return const SizedBox();
+    return Container(
+      height: 240,
+      padding: const EdgeInsets.only(right: 16, left: 4, top: 20, bottom: 0),
+      child: LineChart(
+        LineChartData(
+          gridData: const FlGridData(show: false),
+          titlesData: FlTitlesData(
+            bottomTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                reservedSize: 30,
+                getTitlesWidget: (value, meta) {
+                  final index = value.toInt();
+                  if (index < 0 || index >= data.length) {
+                    return const SizedBox();
+                  }
 
-                      // Show specific dates (e.g., every 5th day)
-                      if (index % 5 == 0) {
-                        return Padding(
-                          padding: const EdgeInsets.only(top: 8.0),
-                          child: Text(
-                            DateFormat.Md().format(data[index].date),
-                            style: const TextStyle(fontSize: 10),
-                          ),
-                        );
-                      }
-                      return const SizedBox();
-                    },
-                    interval: 1,
-                  ),
-                ),
-                leftTitles: AxisTitles(
-                  sideTitles: SideTitles(
-                    showTitles: true,
-                    interval: 0.25, // 0%, 25%, 50%, 75%, 100%
-                    getTitlesWidget: (value, meta) {
-                      return Text(
-                        '${(value * 100).toInt()}%',
-                        style: const TextStyle(fontSize: 10),
-                      );
-                    },
-                    reservedSize: 40,
-                  ),
-                ),
-                topTitles: const AxisTitles(
-                  sideTitles: SideTitles(showTitles: false),
-                ),
-                rightTitles: const AxisTitles(
-                  sideTitles: SideTitles(showTitles: false),
-                ),
+                  // Show specific dates (e.g., every 5th day)
+                  if (index % 5 == 0) {
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Text(
+                        DateFormat.Md().format(data[index].date),
+                        style: const TextStyle(
+                          fontSize: 10,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    );
+                  }
+                  return const SizedBox();
+                },
+                interval: 1,
               ),
-              borderData: FlBorderData(show: false),
-              minX: 0,
-              maxX: (data.length - 1).toDouble(),
-              minY: 0,
-              maxY: 1.05, // slightly above 1.0 for padding
-              lineBarsData: [
-                LineChartBarData(
-                  spots: data.asMap().entries.map((e) {
-                    return FlSpot(e.key.toDouble(), e.value.completionRate);
-                  }).toList(),
-                  isCurved: true,
-                  color: Theme.of(context).primaryColor,
-                  barWidth: 3,
-                  isStrokeCapRound: true,
-                  dotData: const FlDotData(show: false),
-                  belowBarData: BarAreaData(
-                    show: true,
-                    color: Theme.of(context).primaryColor.withOpacity(0.1),
-                  ),
-                ),
-              ],
+            ),
+            leftTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                interval: 0.25, // 0%, 25%, 50%, 75%, 100%
+                getTitlesWidget: (value, meta) {
+                  return Text(
+                    '${(value * 100).toInt()}%',
+                    style: const TextStyle(fontSize: 10, color: Colors.grey),
+                  );
+                },
+                reservedSize: 35,
+              ),
+            ),
+            topTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false, reservedSize: 0),
+            ),
+            rightTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false, reservedSize: 0),
             ),
           ),
+          borderData: FlBorderData(show: false),
+          minX: 0,
+          maxX: (data.length - 1).toDouble(),
+          minY: 0,
+          maxY: 1.05, // slightly above 1.0 for padding
+          lineBarsData: [
+            LineChartBarData(
+              preventCurveOverShooting: true,
+              spots: data.asMap().entries.map((e) {
+                return FlSpot(e.key.toDouble(), e.value.completionRate);
+              }).toList(),
+              isCurved: true,
+              color: Theme.of(context).primaryColor,
+              barWidth: 3,
+              isStrokeCapRound: true,
+              dotData: const FlDotData(show: false),
+              belowBarData: BarAreaData(
+                show: true,
+                color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+              ),
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }

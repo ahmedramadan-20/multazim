@@ -105,10 +105,12 @@ class AnalyticsRepositoryImpl implements AnalyticsRepository {
           }
         }
 
-        // Avoid division by zero
+        // Avoid division by zero and clamp to 100%
         double rate = 0.0;
         if (totalScheduled > 0) {
-          rate = totalCompleted / totalScheduled;
+          // If more actions were taken than scheduled (e.g. unscheduled habits),
+          // we treat it as 100% rather than >100% for the trend logic.
+          rate = (totalCompleted / totalScheduled).clamp(0.0, 1.0);
         }
 
         summaries.add(
