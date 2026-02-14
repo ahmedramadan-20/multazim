@@ -73,9 +73,23 @@ UI (Widget) → Cubit → UseCase → Repository (interface) → DataSource → 
 - **Advanced Scheduling** — Daily habits or "X times per week" (ISO-week compliant).
 - **Goal Types** — Binary (Yes/No) or Quantitative (e.g., "500ml water", "10 pages read").
 - **Streak Engine** — Sophisticated streak tracking with automatic repairs and milestones.
-- **Analytics Dashboard** — Heatmaps, completion trends, and record-breaking milestones.
+- **Analytics Dashboard** — Advanced visualization with `fl_chart`:
+    - **Completion Trends**: Weekly visualization of performance.
+    - **Heatmap Calendar**: Year-view of habit consistency.
+    - **Metric Cards**: Tracking "Perfect Days", "Best Performance Day", and "Active Streaks".
 - **Smart Insights** — Automated feedback on consistency and performance trends.
 - **Arabic UI** — Full RTL and localized content for all features.
+- **App Icons** — Custom branded icons for both Android and iOS.
+
+---
+
+## ✨ Design & UX
+
+The app follows modern design principles to provide a premium and tactile experience:
+- **Premium Aesthetics** — Vibrant colors, dark mode support, and harmonious palettes generated from seeds.
+- **Depth & Dimension** — Multi-layered drop shadows and glassmorphism.
+- **Micro-animations** — Subtle, interactive transitions for enhanced engagement.
+- **Tactile Feel** — Subtle noise textures and elegant "glow" effects on interactive elements.
 
 ---
 
@@ -90,6 +104,7 @@ UI (Widget) → Cubit → UseCase → Repository (interface) → DataSource → 
 | **Navigation** | GoRouter |
 | **Dependency Injection** | get_it |
 | **Localization** | intl |
+| **Branding** | flutter_launcher_icons |
 | **ID Generation** | uuid |
 
 ---
