@@ -1,0 +1,52 @@
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+	modified:   README.md
+	new file:   git_status_full.txt
+	modified:   lib/core/di/injection_container.dart
+	modified:   lib/core/router/app_router.dart
+	modified:   lib/core/router/app_routes.dart
+	modified:   lib/features/analytics/domain/services/insight_generator.dart
+	modified:   lib/features/analytics/presentation/cubit/analytics_cubit.dart
+	modified:   lib/features/analytics/presentation/widgets/heatmap_calendar.dart
+	new file:   lib/features/auth/data/datasources/auth_remote_datasource.dart
+	new file:   lib/features/auth/data/datasources/supabase_auth_datasource.dart
+	new file:   lib/features/auth/data/repositories/auth_repository_impl.dart
+	new file:   lib/features/auth/domain/entities/user.dart
+	new file:   lib/features/auth/domain/repositories/auth_repository.dart
+	new file:   lib/features/auth/domain/usecases/get_current_user_usecase.dart
+	new file:   lib/features/auth/domain/usecases/sign_in_usecase.dart
+	new file:   lib/features/auth/domain/usecases/sign_out_usecase.dart
+	new file:   lib/features/auth/domain/usecases/sign_up_usecase.dart
+	new file:   lib/features/auth/presentation/cubit/auth_cubit.dart
+	new file:   lib/features/auth/presentation/cubit/auth_state.dart
+	new file:   lib/features/auth/presentation/pages/login_page.dart
+	new file:   lib/features/auth/presentation/pages/sign_up_page.dart
+	modified:   lib/features/habits/data/datasources/local/habit_local_datasource.dart
+	modified:   lib/features/habits/data/datasources/local/objectbox_habit_datasource.dart
+	modified:   lib/features/habits/data/datasources/remote/habit_remote_datasource.dart
+	modified:   lib/features/habits/data/datasources/remote/supabase_habit_datasource.dart
+	modified:   lib/features/habits/data/repositories/habit_repository_impl.dart
+	modified:   lib/features/habits/domain/repositories/habit_repository.dart
+	modified:   lib/features/habits/domain/services/streak_calculation_service.dart
+	new file:   lib/features/habits/domain/services/sync_service.dart
+	new file:   lib/features/habits/domain/usecases/get_all_events_usecase.dart
+	new file:   lib/features/habits/domain/usecases/get_all_milestones_usecase.dart
+	new file:   lib/features/habits/domain/usecases/get_all_streak_repairs_usecase.dart
+	modified:   lib/features/habits/presentation/cubit/habits_cubit.dart
+	modified:   lib/features/habits/presentation/widgets/habit_card.dart
+	modified:   lib/main.dart
+	modified:   lib/objectbox-model.json
+	modified:   lib/objectbox.g.dart
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    git_status_full.txt
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	full_status.txt
+

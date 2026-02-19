@@ -8,6 +8,9 @@ class AppRoutes {
 
   static const String habitDetailAnalytics = '/habit/:id/analytics';
 
+  // Auth
+  static const String login = '/login';
+  static const String signUp = '/signup';
   // Helper — builds the actual path with the ID filled in
   // Usage: AppRoutes.habitDetailPath('abc123') → '/habit/abc123'
   static String habitDetailPath(String id) => '/habit/$id';

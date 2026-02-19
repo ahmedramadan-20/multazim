@@ -21,8 +21,10 @@ abstract class HabitRemoteDataSource {
   // Milestones
   Future<void> syncMilestone(MilestoneModel milestone);
   Future<List<MilestoneModel>> fetchMilestones(String habitId);
+  Future<List<MilestoneModel>> fetchAllMilestones();
 
   // Streak Repairs
   Future<void> syncStreakRepair(StreakRepairModel repair);
   Future<List<StreakRepairModel>> fetchStreakRepairs(String habitId);
+  Future<List<StreakRepairModel>> fetchAllStreakRepairs();
 }

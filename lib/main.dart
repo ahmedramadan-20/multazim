@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:multazim/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/constants/env.dart';
 import 'core/di/injection_container.dart';
@@ -12,15 +13,17 @@ import 'package:intl/date_symbol_data_local.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // ENABLED IN PHASE 5 — sync/cloud phase
   await dotenv.load(fileName: '.env');
   await Supabase.initialize(url: Env.supabaseUrl, anonKey: Env.supabaseAnonKey);
 
-  // Initialize date formatting for Arabic
   await initializeDateFormatting('ar', null);
 
-  // Wire all dependencies
   await initDependencies();
+
+  // ✅ Check if a session already exists (e.g. user was logged in before)
+  // then start listening for future auth changes (token expiry, remote sign-out)
+  await sl<AuthCubit>().checkAuthStatus();
+  sl<AuthCubit>().listenToAuthChanges();
 
   runApp(const MultazimApp());
 }

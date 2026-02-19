@@ -258,7 +258,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
     id: const obx_int.IdUid(4, 5750904285678500156),
     name: 'StreakRepairModel',
-    lastPropertyId: const obx_int.IdUid(5, 371687048399648727),
+    lastPropertyId: const obx_int.IdUid(6, 7908141286021782763),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
@@ -290,6 +290,12 @@ final _entities = <obx_int.ModelEntity>[
         id: const obx_int.IdUid(5, 371687048399648727),
         name: 'reason',
         type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(6, 7908141286021782763),
+        name: 'createdAt',
+        type: 10,
         flags: 0,
       ),
     ],
@@ -603,12 +609,13 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final idOffset = fbb.writeString(object.id);
         final habitIdOffset = fbb.writeString(object.habitId);
         final reasonOffset = fbb.writeString(object.reason);
-        fbb.startTable(6);
+        fbb.startTable(7);
         fbb.addInt64(0, object.dbId);
         fbb.addOffset(1, idOffset);
         fbb.addOffset(2, habitIdOffset);
         fbb.addInt64(3, object.date.millisecondsSinceEpoch);
         fbb.addOffset(4, reasonOffset);
+        fbb.addInt64(5, object.createdAt.millisecondsSinceEpoch);
         fbb.finish(fbb.endTable());
         return object.dbId;
       },
@@ -629,7 +636,10 @@ obx_int.ModelDefinition getObjectBoxModel() {
           )
           ..reason = const fb.StringReader(
             asciiOptimization: true,
-          ).vTableGet(buffer, rootOffset, 12, '');
+          ).vTableGet(buffer, rootOffset, 12, '')
+          ..createdAt = DateTime.fromMillisecondsSinceEpoch(
+            const fb.Int64Reader().vTableGet(buffer, rootOffset, 14, 0),
+          );
 
         return object;
       },
@@ -838,5 +848,10 @@ class StreakRepairModel_ {
   /// See [StreakRepairModel.reason].
   static final reason = obx.QueryStringProperty<StreakRepairModel>(
     _entities[3].properties[4],
+  );
+
+  /// See [StreakRepairModel.createdAt].
+  static final createdAt = obx.QueryDateProperty<StreakRepairModel>(
+    _entities[3].properties[5],
   );
 }

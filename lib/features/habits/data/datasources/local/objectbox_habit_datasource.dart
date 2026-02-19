@@ -201,4 +201,58 @@ class ObjectBoxHabitDataSource implements HabitLocalDataSource {
       throw LocalException('Failed to get all milestones: $e');
     }
   }
+
+  @override
+  Future<List<HabitEventModel>> getAllEvents() async {
+    try {
+      return _eventBox.getAll();
+    } catch (e) {
+      throw LocalException('Failed to get all events: $e');
+    }
+  }
+
+  @override
+  Future<List<StreakRepairModel>> getAllStreakRepairs() async {
+    try {
+      return _repairBox.getAll();
+    } catch (e) {
+      throw LocalException('Failed to get all streak repairs: $e');
+    }
+  }
+
+  @override
+  Future<HabitEventModel?> getEventById(String id) async {
+    try {
+      final query = _eventBox.query(HabitEventModel_.id.equals(id)).build();
+      final result = query.findFirst();
+      query.close();
+      return result;
+    } catch (e) {
+      throw LocalException('Failed to get event $id: $e');
+    }
+  }
+
+  @override
+  Future<MilestoneModel?> getMilestoneById(String id) async {
+    try {
+      final query = _milestoneBox.query(MilestoneModel_.id.equals(id)).build();
+      final result = query.findFirst();
+      query.close();
+      return result;
+    } catch (e) {
+      throw LocalException('Failed to get milestone $id: $e');
+    }
+  }
+
+  @override
+  Future<StreakRepairModel?> getStreakRepairById(String id) async {
+    try {
+      final query = _repairBox.query(StreakRepairModel_.id.equals(id)).build();
+      final result = query.findFirst();
+      query.close();
+      return result;
+    } catch (e) {
+      throw LocalException('Failed to get streak repair $id: $e');
+    }
+  }
 }

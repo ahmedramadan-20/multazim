@@ -20,4 +20,10 @@ abstract class HabitLocalDataSource {
   Future<void> saveMilestone(MilestoneModel milestone);
   Future<List<MilestoneModel>> getMilestones(String habitId);
   Future<List<MilestoneModel>> getAllMilestones();
+  Future<List<HabitEventModel>> getAllEvents();
+  Future<List<StreakRepairModel>> getAllStreakRepairs();
+
+  Future<HabitEventModel?> getEventById(String id);
+  Future<MilestoneModel?> getMilestoneById(String id);
+  Future<StreakRepairModel?> getStreakRepairById(String id);
 }

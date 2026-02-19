@@ -52,7 +52,8 @@ class SupabaseHabitDataSource implements HabitRemoteDataSource {
         'end_date': habit.endDate?.toIso8601String(),
         'is_active': habit.isActive,
         'created_at': habit.createdAt.toIso8601String(),
-        'version': 1, // For conflict resolution
+        'updated_at': DateTime.now().toUtc().toIso8601String(),
+        'version': habit.version, // For conflict resolution
       };
 
       // Upsert (insert or update)
@@ -243,6 +244,42 @@ class SupabaseHabitDataSource implements HabitRemoteDataSource {
     }
   }
 
+  @override
+  Future<List<MilestoneModel>> fetchAllMilestones() async {
+    try {
+      final userId = await getCurrentUserId();
+
+      final response = await _client
+          .from('milestones')
+          .select()
+          .eq('user_id', userId)
+          .order('achieved_at', ascending: false);
+
+      return (response as List)
+          .map((json) => _milestoneFromJson(json))
+          .toList();
+    } catch (e) {
+      throw RemoteException('Failed to fetch all milestones: $e');
+    }
+  }
+
+  @override
+  Future<List<StreakRepairModel>> fetchAllStreakRepairs() async {
+    try {
+      final userId = await getCurrentUserId();
+
+      final response = await _client
+          .from('streak_repairs')
+          .select()
+          .eq('user_id', userId)
+          .order('date', ascending: false);
+
+      return (response as List).map((json) => _repairFromJson(json)).toList();
+    } catch (e) {
+      throw RemoteException('Failed to fetch all streak repairs: $e');
+    }
+  }
+
   // ─────────────────────────────────────────────────
   // JSON CONVERTERS (Supabase → Model)
   // ─────────────────────────────────────────────────
@@ -265,14 +302,15 @@ class SupabaseHabitDataSource implements HabitRemoteDataSource {
           ? DateTime.parse(json['end_date'])
           : null
       ..isActive = json['is_active']
-      ..createdAt = DateTime.parse(json['created_at']);
+      ..createdAt = DateTime.parse(json['created_at'])
+      ..version = json['version'] ?? 1;
   }
 
   HabitEventModel _eventFromJson(Map<String, dynamic> json) {
     return HabitEventModel()
       ..id = json['id']
       ..habitId = json['habit_id']
-      ..date = DateTime.parse(json['date'])
+      ..date = _parseLocalDate(json['date'])
       ..statusName = json['status']
       ..countValue = json['count_value']
       ..note = json['note']
@@ -294,8 +332,20 @@ class SupabaseHabitDataSource implements HabitRemoteDataSource {
     return StreakRepairModel()
       ..id = json['id']
       ..habitId = json['habit_id']
-      ..date = DateTime.parse(json['date'])
+      ..date = _parseLocalDate(json['date'])
       ..reason = json['reason']
       ..createdAt = DateTime.parse(json['created_at']);
+  }
+
+  /// Safely parses a date-only string (e.g. "2024-01-15") into
+  /// a local DateTime at midnight, consistent with how ObjectBox
+  /// stores and how isScheduledOn() / analytics compare dates.
+  DateTime _parseLocalDate(String dateStr) {
+    final parts = dateStr.split('-');
+    return DateTime(
+      int.parse(parts[0]), // year
+      int.parse(parts[1]), // month
+      int.parse(parts[2]), // day
+    );
   }
 }

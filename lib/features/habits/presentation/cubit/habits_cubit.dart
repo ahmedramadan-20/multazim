@@ -14,10 +14,10 @@ import '../../domain/usecases/complete_habit_usecase.dart';
 import '../../domain/usecases/skip_habit_usecase.dart';
 import '../../domain/usecases/delete_habit_usecase.dart';
 import '../../domain/usecases/update_habit_usecase.dart';
-import '../../domain/usecases/get_today_event_usecase.dart';
-import '../../domain/usecases/get_events_for_habit_usecase.dart';
 import '../../domain/usecases/get_streak_repairs_usecase.dart';
-import '../../domain/usecases/get_milestones_usecase.dart';
+import '../../domain/usecases/get_all_events_usecase.dart';
+import '../../domain/usecases/get_all_streak_repairs_usecase.dart';
+import '../../domain/usecases/get_all_milestones_usecase.dart';
 import '../../domain/usecases/save_milestone_usecase.dart';
 import '../../domain/usecases/save_streak_repair_usecase.dart';
 import 'habits_state.dart';
@@ -29,10 +29,10 @@ class HabitsCubit extends Cubit<HabitsState> {
   final SkipHabitUseCase _skipHabit;
   final UpdateHabitUseCase _updateHabit;
   final DeleteHabitUseCase _deleteHabit;
-  final GetTodayEventUseCase _getTodayEvent;
-  final GetEventsForHabitUseCase _getEventsForHabit;
   final GetStreakRepairsUseCase _getStreakRepairs;
-  final GetMilestonesUseCase _getMilestones;
+  final GetAllEventsUseCase _getAllEvents;
+  final GetAllStreakRepairsUseCase _getAllStreakRepairs;
+  final GetAllMilestonesUseCase _getAllMilestones;
   final SaveMilestoneUseCase _saveMilestone;
   final SaveStreakRepairUseCase _saveStreakRepair;
   final StreakService _streakService;
@@ -47,10 +47,10 @@ class HabitsCubit extends Cubit<HabitsState> {
     required SkipHabitUseCase skipHabit,
     required UpdateHabitUseCase updateHabit,
     required DeleteHabitUseCase deleteHabit,
-    required GetTodayEventUseCase getTodayEvent,
-    required GetEventsForHabitUseCase getEventsForHabit,
     required GetStreakRepairsUseCase getStreakRepairs,
-    required GetMilestonesUseCase getMilestones,
+    required GetAllEventsUseCase getAllEvents,
+    required GetAllStreakRepairsUseCase getAllStreakRepairs,
+    required GetAllMilestonesUseCase getAllMilestones,
     required SaveMilestoneUseCase saveMilestone,
     required SaveStreakRepairUseCase saveStreakRepair,
     required StreakService streakService,
@@ -63,10 +63,10 @@ class HabitsCubit extends Cubit<HabitsState> {
        _skipHabit = skipHabit,
        _updateHabit = updateHabit,
        _deleteHabit = deleteHabit,
-       _getTodayEvent = getTodayEvent,
-       _getEventsForHabit = getEventsForHabit,
        _getStreakRepairs = getStreakRepairs,
-       _getMilestones = getMilestones,
+       _getAllEvents = getAllEvents,
+       _getAllStreakRepairs = getAllStreakRepairs,
+       _getAllMilestones = getAllMilestones,
        _saveMilestone = saveMilestone,
        _saveStreakRepair = saveStreakRepair,
        _streakService = streakService,
@@ -80,19 +80,51 @@ class HabitsCubit extends Cubit<HabitsState> {
     try {
       final habits = await _getHabits();
       final now = DateTime.now();
+      final todayStart = DateTime(now.year, now.month, now.day);
+      final todayEnd = todayStart.add(
+        const Duration(hours: 23, minutes: 59, seconds: 59),
+      );
 
+      // ── Batch fetch (3 queries instead of 4*N) ──
+      final allEvents = await _getAllEvents();
+      final allRepairs = await _getAllStreakRepairs();
+      final allMilestones = await _getAllMilestones();
+
+      // ── Group by habitId in memory ──
+      final eventsByHabit = <String, List<HabitEvent>>{};
+      for (final e in allEvents) {
+        (eventsByHabit[e.habitId] ??= []).add(e);
+      }
+
+      final repairsByHabit = <String, List<StreakRepair>>{};
+      for (final r in allRepairs) {
+        (repairsByHabit[r.habitId] ??= []).add(r);
+      }
+
+      final milestonesByHabit = <String, List<Milestone>>{};
+      for (final m in allMilestones) {
+        (milestonesByHabit[m.habitId] ??= []).add(m);
+      }
+
+      // ── Build per-habit data from in-memory maps ──
       final todayEvents = <String, HabitEvent?>{};
       final streaks = <String, StreakState>{};
       final weeklyProgress = <String, ({int current, int target})>{};
       final milestones = <String, List<Milestone>>{};
 
       for (final habit in habits) {
-        // Today's event
-        todayEvents[habit.id] = await _getTodayEvent(habit.id);
+        final events = eventsByHabit[habit.id] ?? [];
+        final repairs = repairsByHabit[habit.id] ?? [];
 
-        // Fetch events and repairs for streak/progress calculation
-        final events = await _getEventsForHabit(habit.id);
-        final repairs = await _getStreakRepairs(habit.id);
+        // Today's event — filter from batch
+        todayEvents[habit.id] = events
+            .where(
+              (e) =>
+                  e.habitId == habit.id &&
+                  !e.date.isBefore(todayStart) &&
+                  !e.date.isAfter(todayEnd),
+            )
+            .firstOrNull;
 
         // Streak calculation
         streaks[habit.id] = _streakService.calculateStreak(
@@ -109,7 +141,7 @@ class HabitsCubit extends Cubit<HabitsState> {
         );
 
         // Milestones
-        milestones[habit.id] = await _getMilestones(habit.id);
+        milestones[habit.id] = milestonesByHabit[habit.id] ?? [];
       }
 
       emit(

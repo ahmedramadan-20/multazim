@@ -77,16 +77,33 @@ class InsightGenerator {
       );
     }
 
-    if (streak.current == streak.longest && streak.current > 0) {
-      return Insight(
-        title: 'رقم قياسي جديد!',
-        message:
-            "لقد حطمت رقمك القياسي لـ '${stats.habitName}'! أنت الآن في اليوم ${streak.current}!",
-        type: InsightType.streakMilestone,
-        scope: InsightScope.habitSpecific,
-        priority: InsightPriority.high,
-        relatedHabitId: stats.habitId,
-      );
+    // Rule: Just broke a record (current surpassed longest)
+    // Only triggers at the exact crossover point to
+    // prevent firing every subsequent day.
+    if (streak.current == streak.longest &&
+        streak.current > 3 &&
+        streak.current != streak.longest - 1) {
+      // Check if this is a notable milestone threshold
+      final isMilestone =
+          streak.current == 7 ||
+          streak.current == 14 ||
+          streak.current == 21 ||
+          streak.current == 30 ||
+          streak.current == 50 ||
+          streak.current == 100 ||
+          streak.current % 50 == 0;
+
+      if (isMilestone) {
+        return Insight(
+          title: 'رقم قياسي جديد!',
+          message:
+              "لقد حطمت رقمك القياسي لـ '${stats.habitName}'! أنت الآن في اليوم ${streak.current}!",
+          type: InsightType.streakMilestone,
+          scope: InsightScope.habitSpecific,
+          priority: InsightPriority.high,
+          relatedHabitId: stats.habitId,
+        );
+      }
     }
 
     return null;

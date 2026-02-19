@@ -140,6 +140,9 @@ class StreakCalculationService {
   /// **Consistency streak**: counts how many consecutive
   /// 7-day windows have ≥ [StreakConfig.minCompletions]
   /// completions, working backwards from the current window.
+  ///
+  /// Optimized with a pointer-based approach (O(N+W))
+  /// instead of the previous O(N×W) nested scan.
   StreakState _calculateConsistency(
     List<HabitEvent> completed,
     StreakConfig config,
@@ -149,6 +152,13 @@ class StreakCalculationService {
     final windowSize = config.windowSize;
     final minRequired = config.minCompletions;
 
+    // Sort completed events oldest-first for pointer scan
+    final sorted = List<HabitEvent>.from(completed)
+      ..sort((a, b) => a.date.compareTo(b.date));
+
+    // Extract unique date-only values (ascending)
+    final dates = sorted.map((e) => _dateOnly(e.date)).toSet().toList()..sort();
+
     int current = 0;
     int longest = 0;
     int tempStreak = 0;
@@ -156,16 +166,29 @@ class StreakCalculationService {
     // Work backwards in windows of `windowSize` days
     var windowEnd = today;
     var windowStart = windowEnd.subtract(Duration(days: windowSize - 1));
+    final habitStart = _dateOnly(habit.startDate);
+
+    // Use a pointer into the sorted dates list
+    int rightPtr = dates.length - 1;
 
     while (windowStart.isAfter(
-          habit.startDate.subtract(Duration(days: windowSize)),
+          habitStart.subtract(Duration(days: windowSize)),
         ) ||
-        windowStart == _dateOnly(habit.startDate)) {
-      // Count completions in this window
-      final count = completed.where((e) {
-        final d = _dateOnly(e.date);
-        return !d.isBefore(windowStart) && !d.isAfter(windowEnd);
-      }).length;
+        windowStart == habitStart) {
+      // Count dates falling within [windowStart, windowEnd]
+      int count = 0;
+      int ptr = rightPtr;
+      while (ptr >= 0 && !dates[ptr].isBefore(windowStart)) {
+        if (!dates[ptr].isAfter(windowEnd)) {
+          count++;
+        }
+        ptr--;
+      }
+
+      // Advance rightPtr past this window for next iteration
+      while (rightPtr >= 0 && dates[rightPtr].isAfter(windowEnd)) {
+        rightPtr--;
+      }
 
       if (count >= minRequired) {
         tempStreak++;
@@ -173,11 +196,8 @@ class StreakCalculationService {
         if (tempStreak > longest) longest = tempStreak;
         if (current == 0 && tempStreak > 0) {
           current = tempStreak;
-        } else if (current == 0 && tempStreak == 0) {
-          // First window didn't meet threshold — streak is 0
-          current = 0;
         }
-        if (current > 0) break; // We found the current streak
+        if (current > 0) break;
         tempStreak = 0;
       }
 

@@ -33,6 +33,19 @@ import '../../features/habits/domain/services/weekly_progress_service.dart';
 import '../../features/habits/domain/services/milestone_generator.dart';
 import '../../features/habits/domain/services/streak_recovery_service.dart';
 import '../data/objectbox_store.dart';
+import '../../features/auth/data/datasources/auth_remote_datasource.dart';
+import '../../features/auth/data/datasources/supabase_auth_datasource.dart';
+import '../../features/auth/data/repositories/auth_repository_impl.dart';
+import '../../features/auth/domain/repositories/auth_repository.dart';
+import '../../features/auth/domain/usecases/sign_in_usecase.dart';
+import '../../features/auth/domain/usecases/sign_up_usecase.dart';
+import '../../features/auth/domain/usecases/sign_out_usecase.dart';
+import '../../features/auth/domain/usecases/get_current_user_usecase.dart';
+import '../../features/auth/presentation/cubit/auth_cubit.dart';
+import '../../features/habits/domain/services/sync_service.dart';
+import '../../features/habits/domain/usecases/get_all_milestones_usecase.dart';
+import '../../features/habits/domain/usecases/get_all_events_usecase.dart';
+import '../../features/habits/domain/usecases/get_all_streak_repairs_usecase.dart';
 
 // sl = service locator — the single global instance of GetIt
 // Import this wherever you need to retrieve a dependency
@@ -53,7 +66,7 @@ Future<void> initDependencies() async {
   sl.registerSingleton<ObjectBoxStore>(objectBoxStore);
 
   // Supabase client — registered after Supabase.initialize() in main.dart
-  // sl.registerSingleton<SupabaseClient>(Supabase.instance.client);
+  sl.registerSingleton<SupabaseClient>(Supabase.instance.client);
 
   // ─────────────────────────────────────────────────
   // FEATURES
@@ -61,6 +74,7 @@ Future<void> initDependencies() async {
 
   _initHabits();
   _initAnalytics();
+  _initAuth();
 }
 
 // ─────────────────────────────────────────────────
@@ -72,7 +86,7 @@ void _initHabits() {
     () => ObjectBoxHabitDataSource(sl()),
   );
   sl.registerLazySingleton<HabitRemoteDataSource>(
-    () => SupabaseHabitDataSource(Supabase.instance.client),
+    () => SupabaseHabitDataSource(sl()),
   );
   // Repository
   sl.registerLazySingleton<HabitRepository>(
@@ -92,6 +106,9 @@ void _initHabits() {
   sl.registerLazySingleton(() => GetMilestonesUseCase(sl()));
   sl.registerLazySingleton(() => SaveMilestoneUseCase(sl()));
   sl.registerLazySingleton(() => SaveStreakRepairUseCase(sl()));
+  sl.registerLazySingleton(() => GetAllMilestonesUseCase(sl()));
+  sl.registerLazySingleton(() => GetAllEventsUseCase(sl()));
+  sl.registerLazySingleton(() => GetAllStreakRepairsUseCase(sl()));
 
   // Domain Services
   sl.registerLazySingleton(() => StreakCalculationService());
@@ -99,7 +116,9 @@ void _initHabits() {
   sl.registerLazySingleton(() => WeeklyProgressService());
   sl.registerLazySingleton(() => MilestoneGenerator());
   sl.registerLazySingleton(() => StreakRecoveryService());
-
+  sl.registerLazySingleton(
+    () => SyncService(localDataSource: sl(), remoteDataSource: sl()),
+  );
   // Cubit — registered LAST (depends on all use cases above)
   sl.registerLazySingleton(
     () => HabitsCubit(
@@ -109,16 +128,49 @@ void _initHabits() {
       skipHabit: sl(),
       updateHabit: sl(),
       deleteHabit: sl(),
-      getTodayEvent: sl(),
-      getEventsForHabit: sl(),
       getStreakRepairs: sl(),
-      getMilestones: sl(),
+      getAllEvents: sl(),
+      getAllStreakRepairs: sl(),
+      getAllMilestones: sl(),
       saveMilestone: sl(),
       saveStreakRepair: sl(),
       streakService: sl(),
       weeklyProgressService: sl(),
       milestoneGenerator: sl(),
       recoveryService: sl(),
+    ),
+  );
+}
+
+// ─────────────────────────────────────────────────
+// AUTH
+// ─────────────────────────────────────────────────
+void _initAuth() {
+  // DataSource
+  sl.registerLazySingleton<AuthRemoteDataSource>(
+    () => SupabaseAuthDataSource(sl()),
+  );
+
+  // Repository
+  sl.registerLazySingleton<AuthRepository>(
+    () => AuthRepositoryImpl(remoteDataSource: sl()),
+  );
+
+  // Use Cases
+  sl.registerLazySingleton(() => SignInUseCase(sl()));
+  sl.registerLazySingleton(() => SignUpUseCase(sl()));
+  sl.registerLazySingleton(() => SignOutUseCase(sl()));
+  sl.registerLazySingleton(() => GetCurrentUserUseCase(sl()));
+
+  // Cubit — singleton because auth state is global
+  sl.registerSingleton(
+    AuthCubit(
+      signIn: sl(),
+      signUp: sl(),
+      signOut: sl(),
+      getCurrentUser: sl(),
+      authRepository: sl(),
+      syncService: sl(),
     ),
   );
 }
@@ -149,6 +201,7 @@ void _initAnalytics() {
       getHabitById: sl(),
       getHabitMilestones: sl(),
       streakService: sl(),
+      getAllMilestones: sl(),
     ),
   );
 }

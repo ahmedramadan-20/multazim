@@ -181,6 +181,26 @@ class HabitRepositoryImpl implements HabitRepository {
     }
   }
 
+  @override
+  Future<List<HabitEvent>> getAllEvents() async {
+    try {
+      final models = await localDataSource.getAllEvents();
+      return models.map((m) => m.toEntity()).toList();
+    } on LocalException catch (e) {
+      throw LocalFailure(e.message);
+    }
+  }
+
+  @override
+  Future<List<StreakRepair>> getAllStreakRepairs() async {
+    try {
+      final models = await localDataSource.getAllStreakRepairs();
+      return models.map((m) => m.toEntity()).toList();
+    } on LocalException catch (e) {
+      throw LocalFailure(e.message);
+    }
+  }
+
   // ─────────────────────────────────────────────────
   // PRIVATE SYNC HELPERS (Phase 2)
   // ─────────────────────────────────────────────────

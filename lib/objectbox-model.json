@@ -207,7 +207,7 @@
     },
     {
       "id": "4:5750904285678500156",
-      "lastPropertyId": "5:371687048399648727",
+      "lastPropertyId": "6:7908141286021782763",
       "name": "StreakRepairModel",
       "properties": [
         {
@@ -237,6 +237,11 @@
           "id": "5:371687048399648727",
           "name": "reason",
           "type": 9
+        },
+        {
+          "id": "6:7908141286021782763",
+          "name": "createdAt",
+          "type": 10
         }
       ],
       "relations": []

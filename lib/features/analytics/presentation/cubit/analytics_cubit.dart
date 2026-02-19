@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:multazim/features/habits/domain/usecases/get_all_milestones_usecase.dart';
 import '../../../analytics/domain/entities/insight.dart';
 import '../../../analytics/domain/entities/habit_analytics_snapshot.dart';
 import '../../../analytics/domain/services/insight_generator.dart';
@@ -19,6 +20,7 @@ class AnalyticsCubit extends Cubit<AnalyticsState> {
   final GetHabitRepairsForAnalyticsUseCase _getHabitRepairs;
   final GetHabitByIdForAnalyticsUseCase _getHabitById;
   final GetHabitMilestonesForAnalyticsUseCase _getHabitMilestones;
+  final GetAllMilestonesUseCase _getAllMilestones;
   final StreakService _streakService;
   final InsightGenerator _insightGenerator = InsightGenerator();
 
@@ -29,6 +31,7 @@ class AnalyticsCubit extends Cubit<AnalyticsState> {
     required GetHabitRepairsForAnalyticsUseCase getHabitRepairs,
     required GetHabitByIdForAnalyticsUseCase getHabitById,
     required GetHabitMilestonesForAnalyticsUseCase getHabitMilestones,
+    required GetAllMilestonesUseCase getAllMilestones,
     required StreakService streakService,
   }) : _repository = repository,
        _getHabits = getHabits,
@@ -36,6 +39,7 @@ class AnalyticsCubit extends Cubit<AnalyticsState> {
        _getHabitRepairs = getHabitRepairs,
        _getHabitById = getHabitById,
        _getHabitMilestones = getHabitMilestones,
+       _getAllMilestones = getAllMilestones,
        _streakService = streakService,
        super(AnalyticsInitial());
 
@@ -63,12 +67,13 @@ class AnalyticsCubit extends Cubit<AnalyticsState> {
             )
             .toList();
 
-        final completionRate = last30DaysEvents.isEmpty
+        final attempts = last30DaysEvents.length;
+        final completionRate = attempts == 0
             ? 0.0
             : last30DaysEvents
                       .where((e) => e.status.name == 'completed')
                       .length /
-                  30;
+                  attempts;
 
         snapshots.add(
           HabitAnalyticsSnapshot(
@@ -87,8 +92,7 @@ class AnalyticsCubit extends Cubit<AnalyticsState> {
       );
 
       // Also need getAllMilestones use case — add it if it doesn't exist
-      final allMilestones =
-          <Milestone>[]; // TODO: Create GetAllMilestonesUseCase
+      final allMilestones = await _getAllMilestones();
 
       emit(
         AnalyticsLoaded(

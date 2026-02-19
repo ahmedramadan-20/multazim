@@ -21,4 +21,6 @@ abstract class HabitRepository {
   Future<void> saveMilestone(Milestone milestone);
   Future<List<Milestone>> getMilestones(String habitId);
   Future<List<Milestone>> getAllMilestones();
+  Future<List<HabitEvent>> getAllEvents();
+  Future<List<StreakRepair>> getAllStreakRepairs();
 }

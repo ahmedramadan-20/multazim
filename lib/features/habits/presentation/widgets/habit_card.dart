@@ -26,19 +26,21 @@ class HabitCard extends StatelessWidget {
   bool get isCompleted => todayEvent?.status == HabitEventStatus.completed;
   bool get isSkipped => todayEvent?.status == HabitEventStatus.skipped;
 
+  /// Parses a color string (e.g. "0xFF4CAF50") into a
+  /// [Color]. Returns [AppColors.primary] on failure.
+  static Color parseHabitColor(String colorString) {
+    try {
+      var hex = colorString;
+      if (hex.startsWith('0x')) hex = hex.substring(2);
+      return Color(int.parse(hex, radix: 16));
+    } catch (_) {
+      return AppColors.primary;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    Color habitColor;
-    try {
-      // Remove '0x' prefix if present before parsing
-      var colorString = habit.color;
-      if (colorString.startsWith('0x')) {
-        colorString = colorString.substring(2);
-      }
-      habitColor = Color(int.parse(colorString, radix: 16));
-    } catch (e) {
-      habitColor = AppColors.primary; // Fallback
-    }
+    final habitColor = parseHabitColor(habit.color);
 
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
@@ -176,7 +178,9 @@ class HabitCard extends StatelessWidget {
                                 value:
                                     weeklyProgress!.current /
                                     weeklyProgress!.target,
-                                backgroundColor: habitColor.withValues(alpha: 0.1),
+                                backgroundColor: habitColor.withValues(
+                                  alpha: 0.1,
+                                ),
                                 valueColor: AlwaysStoppedAnimation<Color>(
                                   habitColor.withValues(alpha: 0.7),
                                 ),
