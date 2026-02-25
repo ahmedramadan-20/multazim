@@ -4,6 +4,11 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/router/app_routes.dart';
 import '../cubit/auth_cubit.dart';
 import '../cubit/auth_state.dart';
+import '../widgets/email_field.dart';
+import '../widgets/password_field.dart';
+import '../widgets/login_header.dart';
+import '../widgets/auth_submit_button.dart';
+import '../widgets/auth_navigation_row.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -62,125 +67,27 @@ class _LoginPageState extends State<LoginPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // ── Logo / Title ──────────────────────────
-                    Icon(
-                      Icons.check_circle_rounded,
-                      size: 72,
-                      color: colorScheme.primary,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'ملتزم',
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.headlineLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: colorScheme.primary,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'مرحباً بعودتك',
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
+                    const LoginHeader(),
                     const SizedBox(height: 48),
 
-                    // ── Email ─────────────────────────────────
-                    TextFormField(
-                      controller: _emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      textDirection: TextDirection.ltr,
-                      decoration: const InputDecoration(
-                        labelText: 'البريد الإلكتروني',
-                        prefixIcon: Icon(Icons.email_outlined),
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'يرجى إدخال البريد الإلكتروني';
-                        }
-                        if (!value.contains('@')) {
-                          return 'بريد إلكتروني غير صالح';
-                        }
-                        return null;
-                      },
-                    ),
+                    EmailField(controller: _emailController),
                     const SizedBox(height: 16),
 
-                    // ── Password ──────────────────────────────
-                    TextFormField(
+                    PasswordField(
                       controller: _passwordController,
-                      obscureText: _obscurePassword,
-                      textDirection: TextDirection.ltr,
-                      decoration: InputDecoration(
-                        labelText: 'كلمة المرور',
-                        prefixIcon: const Icon(Icons.lock_outlined),
-                        border: const OutlineInputBorder(),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscurePassword
-                                ? Icons.visibility_outlined
-                                : Icons.visibility_off_outlined,
-                          ),
-                          onPressed: () => setState(
-                            () => _obscurePassword = !_obscurePassword,
-                          ),
-                        ),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'يرجى إدخال كلمة المرور';
-                        }
-                        if (value.length < 6) {
-                          return 'كلمة المرور يجب أن تكون 6 أحرف على الأقل';
-                        }
-                        return null;
-                      },
+                      obscurePassword: _obscurePassword,
+                      onVisibilityChanged: () =>
+                          setState(() => _obscurePassword = !_obscurePassword),
                     ),
                     const SizedBox(height: 32),
 
-                    // ── Submit Button ─────────────────────────
-                    BlocBuilder<AuthCubit, AuthState>(
-                      builder: (context, state) {
-                        final isLoading = state is AuthLoading;
-                        return FilledButton(
-                          onPressed: isLoading ? null : _submit,
-                          style: FilledButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                          ),
-                          child: isLoading
-                              ? const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.white,
-                                  ),
-                                )
-                              : const Text(
-                                  'تسجيل الدخول',
-                                  style: TextStyle(fontSize: 16),
-                                ),
-                        );
-                      },
-                    ),
+                    AuthSubmitButton(onSubmit: _submit, label: 'تسجيل الدخول'),
                     const SizedBox(height: 16),
 
-                    // ── Navigate to Sign Up ───────────────────
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'ليس لديك حساب؟',
-                          style: TextStyle(color: colorScheme.onSurfaceVariant),
-                        ),
-                        TextButton(
-                          onPressed: () => context.go(AppRoutes.signUp),
-                          child: const Text('إنشاء حساب'),
-                        ),
-                      ],
+                    AuthNavigationRow(
+                      text: 'ليس لديك حساب؟',
+                      buttonText: 'إنشاء حساب',
+                      onPressed: () => context.go(AppRoutes.signUp),
                     ),
                   ],
                 ),

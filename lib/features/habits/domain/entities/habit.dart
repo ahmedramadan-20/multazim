@@ -1,6 +1,19 @@
 import 'package:equatable/equatable.dart';
 
-enum HabitCategory { health, work, mind, social, fitness, learning, other }
+enum HabitCategory {
+  worship,
+  health,
+  fitness,
+  mind,
+  learning,
+  work,
+  finance,
+  social,
+  selfCare,
+  nutrition,
+  creativity,
+  other,
+}
 
 enum StrictnessLevel { low, medium, high }
 
@@ -82,6 +95,41 @@ class Habit extends Equatable {
     required this.createdAt,
     this.version = 1,
   });
+  Habit copyWith({
+    String? id,
+    String? name,
+    String? icon,
+    String? color,
+    HabitCategory? category,
+    HabitSchedule? schedule,
+    HabitGoal? goal,
+    int? difficulty,
+    StrictnessLevel? strictness,
+    DateTime? startDate,
+    DateTime? endDate,
+    bool? isActive,
+    DateTime? createdAt,
+    int? version,
+  }) {
+    return Habit(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      icon: icon ?? this.icon,
+      color: color ?? this.color,
+      category: category ?? this.category,
+      schedule: schedule ?? this.schedule,
+      goal: goal ?? this.goal,
+      difficulty: difficulty ?? this.difficulty,
+      strictness: strictness ?? this.strictness,
+      startDate: startDate ?? this.startDate,
+      endDate: endDate ?? this.endDate,
+      isActive: isActive ?? this.isActive,
+      createdAt: createdAt ?? this.createdAt,
+      version: version ?? this.version,
+    );
+  }
+
+  Habit incrementVersion() => copyWith(version: version + 1);
 
   /// Determines whether the habit is *available* on a given date
   bool isScheduledOn(DateTime date) {

@@ -133,7 +133,7 @@ class AnalyticsCubit extends Cubit<AnalyticsState> {
             : last30DaysEvents
                       .where((e) => e.status.name == 'completed')
                       .length /
-                  30;
+                  last30DaysEvents.length;
 
         final snapshot = HabitAnalyticsSnapshot(
           habitId: habitId,

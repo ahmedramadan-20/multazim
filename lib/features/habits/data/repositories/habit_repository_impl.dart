@@ -51,7 +51,7 @@ class HabitRepositoryImpl implements HabitRepository {
       await localDataSource.saveHabit(model);
 
       // Phase 2: Remote Sync
-      _syncHabitRemote(model);
+      await _syncHabitRemote(model);
     } on LocalException catch (e) {
       throw LocalFailure(e.message);
     }
@@ -64,7 +64,7 @@ class HabitRepositoryImpl implements HabitRepository {
       await localDataSource.saveHabit(model);
 
       // Phase 2: Remote Sync
-      _syncHabitRemote(model);
+      await _syncHabitRemote(model);
     } on LocalException catch (e) {
       throw LocalFailure(e.message);
     }
@@ -76,7 +76,7 @@ class HabitRepositoryImpl implements HabitRepository {
       await localDataSource.deleteHabit(id);
 
       // Phase 2: Remote Sync
-      _deleteHabitRemote(id);
+      await _deleteHabitRemote(id);
     } on LocalException catch (e) {
       throw LocalFailure(e.message);
     }
@@ -89,7 +89,7 @@ class HabitRepositoryImpl implements HabitRepository {
       await localDataSource.saveEvent(model);
 
       // Phase 2: Remote Sync
-      _syncEventRemote(model);
+      await _syncEventRemote(model);
     } on LocalException catch (e) {
       throw LocalFailure(e.message);
     }
@@ -132,7 +132,7 @@ class HabitRepositoryImpl implements HabitRepository {
       await localDataSource.saveStreakRepair(model);
 
       // Phase 2: Remote Sync
-      _syncStreakRepairRemote(model);
+      await _syncStreakRepairRemote(model);
     } on LocalException catch (e) {
       throw LocalFailure(e.message);
     }
@@ -155,7 +155,7 @@ class HabitRepositoryImpl implements HabitRepository {
       await localDataSource.saveMilestone(model);
 
       // Phase 2: Remote Sync
-      _syncMilestoneRemote(model);
+      await _syncMilestoneRemote(model);
     } on LocalException catch (e) {
       throw LocalFailure(e.message);
     }
@@ -205,58 +205,57 @@ class HabitRepositoryImpl implements HabitRepository {
   // PRIVATE SYNC HELPERS (Phase 2)
   // ─────────────────────────────────────────────────
 
-  void _syncHabitRemote(HabitModel model) {
-    remoteDataSource.syncHabit(model).catchError((e) {
-      developer.log(
-        'Failed to sync Habit: ${model.id}',
-        name: 'multazim.sync',
-        error: e,
-        level: 1000,
-      );
-    });
+  Future<void> _syncHabitRemote(HabitModel model) async {
+    if (!await remoteDataSource.isAuthenticated()) return;
+    try {
+      await remoteDataSource.syncHabit(model);
+    } catch (e) {
+      _logSyncError('Habit', model.id, e);
+    }
   }
 
-  void _deleteHabitRemote(String id) {
-    remoteDataSource.deleteHabitRemote(id).catchError((e) {
-      developer.log(
-        'Failed to delete Habit remote: $id',
-        name: 'multazim.sync',
-        error: e,
-        level: 1000,
-      );
-    });
+  Future<void> _deleteHabitRemote(String id) async {
+    if (!await remoteDataSource.isAuthenticated()) return;
+    try {
+      await remoteDataSource.deleteHabitRemote(id);
+    } catch (e) {
+      _logSyncError('Delete Habit', id, e);
+    }
   }
 
-  void _syncEventRemote(HabitEventModel model) {
-    remoteDataSource.syncEvent(model).catchError((e) {
-      developer.log(
-        'Failed to sync Event: ${model.id}',
-        name: 'multazim.sync',
-        error: e,
-        level: 1000,
-      );
-    });
+  Future<void> _syncEventRemote(HabitEventModel model) async {
+    if (!await remoteDataSource.isAuthenticated()) return;
+    try {
+      await remoteDataSource.syncEvent(model);
+    } catch (e) {
+      _logSyncError('Event', model.id, e);
+    }
   }
 
-  void _syncMilestoneRemote(MilestoneModel model) {
-    remoteDataSource.syncMilestone(model).catchError((e) {
-      developer.log(
-        'Failed to sync Milestone: ${model.id}',
-        name: 'multazim.sync',
-        error: e,
-        level: 1000,
-      );
-    });
+  Future<void> _syncMilestoneRemote(MilestoneModel model) async {
+    if (!await remoteDataSource.isAuthenticated()) return;
+    try {
+      await remoteDataSource.syncMilestone(model);
+    } catch (e) {
+      _logSyncError('Milestone', model.id, e);
+    }
   }
 
-  void _syncStreakRepairRemote(StreakRepairModel model) {
-    remoteDataSource.syncStreakRepair(model).catchError((e) {
-      developer.log(
-        'Failed to sync StreakRepair: ${model.id}',
-        name: 'multazim.sync',
-        error: e,
-        level: 1000,
-      );
-    });
+  Future<void> _syncStreakRepairRemote(StreakRepairModel model) async {
+    if (!await remoteDataSource.isAuthenticated()) return;
+    try {
+      await remoteDataSource.syncStreakRepair(model);
+    } catch (e) {
+      _logSyncError('StreakRepair', model.id, e);
+    }
+  }
+
+  void _logSyncError(String type, String id, dynamic error) {
+    developer.log(
+      'Failed to sync $type: $id',
+      name: 'multazim.sync',
+      error: error,
+      level: 1000,
+    );
   }
 }

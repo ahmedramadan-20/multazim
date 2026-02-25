@@ -245,10 +245,36 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "5:3591591000694232912",
+      "lastPropertyId": "3:6566704017422916504",
+      "name": "AppMetadataModel",
+      "properties": [
+        {
+          "id": "1:6749116051550143531",
+          "name": "dbId",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:8786024796807890947",
+          "name": "key",
+          "indexId": "7:5998241341254067282",
+          "type": 9,
+          "flags": 2080
+        },
+        {
+          "id": "3:6566704017422916504",
+          "name": "value",
+          "type": 9
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "4:5750904285678500156",
-  "lastIndexId": "6:7022037524467077845",
+  "lastEntityId": "5:3591591000694232912",
+  "lastIndexId": "7:5998241341254067282",
   "lastRelationId": "0:0",
   "lastSequenceId": "0:0",
   "modelVersion": 5,

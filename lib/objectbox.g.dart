@@ -14,6 +14,7 @@ import 'package:objectbox/internal.dart'
 import 'package:objectbox/objectbox.dart' as obx;
 import 'package:objectbox_flutter_libs/objectbox_flutter_libs.dart';
 
+import 'features/habits/data/models/app_metadata_model.dart';
 import 'features/habits/data/models/habit_event_model.dart';
 import 'features/habits/data/models/habit_model.dart';
 import 'features/habits/data/models/milestone_model.dart';
@@ -302,6 +303,35 @@ final _entities = <obx_int.ModelEntity>[
     relations: <obx_int.ModelRelation>[],
     backlinks: <obx_int.ModelBacklink>[],
   ),
+  obx_int.ModelEntity(
+    id: const obx_int.IdUid(5, 3591591000694232912),
+    name: 'AppMetadataModel',
+    lastPropertyId: const obx_int.IdUid(3, 6566704017422916504),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 6749116051550143531),
+        name: 'dbId',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 8786024796807890947),
+        name: 'key',
+        type: 9,
+        flags: 2080,
+        indexId: const obx_int.IdUid(7, 5998241341254067282),
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 6566704017422916504),
+        name: 'value',
+        type: 9,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
 ];
 
 /// Shortcut for [obx.Store.new] that passes [getObjectBoxModel] and for Flutter
@@ -347,8 +377,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
     // Typically, this is done with `dart run build_runner build`.
     generatorVersion: obx_int.GeneratorVersion.v2025_12_16,
     entities: _entities,
-    lastEntityId: const obx_int.IdUid(4, 5750904285678500156),
-    lastIndexId: const obx_int.IdUid(6, 7022037524467077845),
+    lastEntityId: const obx_int.IdUid(5, 3591591000694232912),
+    lastIndexId: const obx_int.IdUid(7, 5998241341254067282),
     lastRelationId: const obx_int.IdUid(0, 0),
     lastSequenceId: const obx_int.IdUid(0, 0),
     retiredEntityUids: const [],
@@ -644,6 +674,48 @@ obx_int.ModelDefinition getObjectBoxModel() {
         return object;
       },
     ),
+    AppMetadataModel: obx_int.EntityDefinition<AppMetadataModel>(
+      model: _entities[4],
+      toOneRelations: (AppMetadataModel object) => [],
+      toManyRelations: (AppMetadataModel object) => {},
+      getId: (AppMetadataModel object) => object.dbId,
+      setId: (AppMetadataModel object, int id) {
+        object.dbId = id;
+      },
+      objectToFB: (AppMetadataModel object, fb.Builder fbb) {
+        final keyOffset = fbb.writeString(object.key);
+        final valueOffset = fbb.writeString(object.value);
+        fbb.startTable(4);
+        fbb.addInt64(0, object.dbId);
+        fbb.addOffset(1, keyOffset);
+        fbb.addOffset(2, valueOffset);
+        fbb.finish(fbb.endTable());
+        return object.dbId;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final dbIdParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          4,
+          0,
+        );
+        final keyParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 6, '');
+        final valueParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 8, '');
+        final object = AppMetadataModel(
+          dbId: dbIdParam,
+          key: keyParam,
+          value: valueParam,
+        );
+
+        return object;
+      },
+    ),
   };
 
   return obx_int.ModelDefinition(model, bindings);
@@ -853,5 +925,23 @@ class StreakRepairModel_ {
   /// See [StreakRepairModel.createdAt].
   static final createdAt = obx.QueryDateProperty<StreakRepairModel>(
     _entities[3].properties[5],
+  );
+}
+
+/// [AppMetadataModel] entity fields to define ObjectBox queries.
+class AppMetadataModel_ {
+  /// See [AppMetadataModel.dbId].
+  static final dbId = obx.QueryIntegerProperty<AppMetadataModel>(
+    _entities[4].properties[0],
+  );
+
+  /// See [AppMetadataModel.key].
+  static final key = obx.QueryStringProperty<AppMetadataModel>(
+    _entities[4].properties[1],
+  );
+
+  /// See [AppMetadataModel.value].
+  static final value = obx.QueryStringProperty<AppMetadataModel>(
+    _entities[4].properties[2],
   );
 }

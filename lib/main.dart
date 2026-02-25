@@ -7,6 +7,7 @@ import 'core/di/injection_container.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'core/constants/app_constants.dart';
+import 'package:multazim/core/services/connectivity_service.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
@@ -24,6 +25,9 @@ Future<void> main() async {
   // then start listening for future auth changes (token expiry, remote sign-out)
   await sl<AuthCubit>().checkAuthStatus();
   sl<AuthCubit>().listenToAuthChanges();
+
+  // 🚀 Start background sync listener
+  sl<ConnectivityService>().startListening();
 
   runApp(const MultazimApp());
 }

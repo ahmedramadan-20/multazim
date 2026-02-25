@@ -7,12 +7,19 @@ class CompleteHabitUseCase {
 
   CompleteHabitUseCase(this.repository);
 
-  Future<void> call(String habitId, DateTime date) async {
+  Future<void> call(
+    String habitId,
+    DateTime date, {
+    int? countValue,
+    String? note,
+  }) async {
     final event = HabitEvent(
       id: const Uuid().v4(),
       habitId: habitId,
       date: date,
       status: HabitEventStatus.completed,
+      countValue: countValue,
+      note: note,
       createdAt: DateTime.now(),
     );
     return repository.saveEvent(event);

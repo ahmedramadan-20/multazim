@@ -1,4 +1,8 @@
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:get_it/get_it.dart';
+import '../services/connectivity_service.dart';
+import 'package:multazim/export/domain/services/export_service.dart';
+import 'package:multazim/export/presentation/cubit/export_cubit.dart';
 import 'package:multazim/features/analytics/domain/usecases/get_habit_by_id_for_analytics_usecase.dart';
 import 'package:multazim/features/analytics/domain/usecases/get_habit_events_for_analytics_usecase.dart';
 import 'package:multazim/features/analytics/domain/usecases/get_habit_milestones_for_analytics_usecase.dart';
@@ -27,6 +31,7 @@ import '../../features/habits/domain/services/streak_calculation_service.dart';
 import '../../features/analytics/data/repositories/analytics_repository_impl.dart';
 import '../../features/analytics/domain/repositories/analytics_repository.dart';
 import '../../features/analytics/presentation/cubit/analytics_cubit.dart';
+import '../../features/habits/presentation/cubit/habit_detail_cubit.dart';
 import '../../features/habits/presentation/cubit/habits_cubit.dart';
 import '../../features/habits/domain/services/streak_service.dart';
 import '../../features/habits/domain/services/weekly_progress_service.dart';
@@ -68,6 +73,16 @@ Future<void> initDependencies() async {
   // Supabase client — registered after Supabase.initialize() in main.dart
   sl.registerSingleton<SupabaseClient>(Supabase.instance.client);
 
+  // Connectivity
+  sl.registerLazySingleton<Connectivity>(() => Connectivity());
+  sl.registerLazySingleton<ConnectivityService>(
+    () => ConnectivityService(
+      connectivity: sl(),
+      syncService: sl(),
+      authCubit: sl(),
+    ),
+  );
+
   // ─────────────────────────────────────────────────
   // FEATURES
   // ─────────────────────────────────────────────────
@@ -75,6 +90,7 @@ Future<void> initDependencies() async {
   _initHabits();
   _initAnalytics();
   _initAuth();
+  _initExport();
 }
 
 // ─────────────────────────────────────────────────
@@ -91,6 +107,9 @@ void _initHabits() {
   // Repository
   sl.registerLazySingleton<HabitRepository>(
     () => HabitRepositoryImpl(localDataSource: sl(), remoteDataSource: sl()),
+  );
+  sl.registerFactory(
+    () => HabitDetailCubit(repository: sl(), streakService: sl()),
   );
 
   // Use Cases — ALL registered BEFORE Cubit
@@ -171,6 +190,7 @@ void _initAuth() {
       getCurrentUser: sl(),
       authRepository: sl(),
       syncService: sl(),
+      localDataSource: sl(),
     ),
   );
 }
@@ -192,7 +212,7 @@ void _initAnalytics() {
   );
 
   // Cubit
-  sl.registerFactory(
+  sl.registerLazySingleton(
     () => AnalyticsCubit(
       repository: sl(),
       getHabits: sl(),
@@ -203,5 +223,12 @@ void _initAnalytics() {
       streakService: sl(),
       getAllMilestones: sl(),
     ),
+  );
+}
+
+void _initExport() {
+  sl.registerLazySingleton(() => ExportService());
+  sl.registerFactory(
+    () => ExportCubit(habitRepository: sl(), exportService: sl()),
   );
 }

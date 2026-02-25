@@ -158,19 +158,17 @@ class HabitsCubit extends Cubit<HabitsState> {
     }
   }
 
-  Future<void> completeHabit(String habitId) async {
+  Future<void> completeHabit(String habitId, {int? countValue}) async {
     final currentState = state;
     if (currentState is! HabitsLoaded) return;
 
     try {
       final oldStreak = currentState.streaks[habitId]?.current ?? 0;
 
-      await _completeHabit(habitId, DateTime.now());
+      await _completeHabit(habitId, DateTime.now(), countValue: countValue);
 
-      // Reload to get updated data
       await loadHabits();
 
-      // Check for new milestones
       final newState = state;
       if (newState is HabitsLoaded) {
         final newStreakState = newState.streaks[habitId];
@@ -184,7 +182,6 @@ class HabitsCubit extends Cubit<HabitsState> {
 
           if (milestone != null) {
             await _saveMilestone(milestone);
-            // Refresh to show newly added milestone
             await loadHabits();
           }
         }

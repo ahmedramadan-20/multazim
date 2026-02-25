@@ -3,51 +3,64 @@ import '../entities/habit_analytics_snapshot.dart';
 import '../entities/insight.dart';
 
 class InsightGenerator {
-  /// Generates a list of insights based on global and per-habit data.
+  static const int _maxWarnings = 2; // never spam more than 2 warnings
+
   List<Insight> generate({
     required List<DailySummary> summaries,
     required List<HabitAnalyticsSnapshot> habitStats,
   }) {
     final insights = <Insight>[];
 
-    // 1. Global Insights
-    final globalTrend = _generateGlobalTrendInsight(summaries);
-    if (globalTrend != null) insights.add(globalTrend);
+    // ── Global insights ───────────────────────────
+    final trend = _globalTrend(summaries);
+    if (trend != null) insights.add(trend);
 
-    // 2. Habit-Specific Insights
+    final rate = _globalCompletionRate(summaries);
+    if (rate != null) insights.add(rate);
+
+    // ── Per-habit insights ────────────────────────
+    final warnings = <Insight>[];
+
     for (final stats in habitStats) {
-      // Streak Milestones
-      final streakInsight = _generateStreakMilestoneInsight(stats);
-      if (streakInsight != null) insights.add(streakInsight);
+      final streak = _streakMilestone(stats);
+      if (streak != null) insights.add(streak);
 
-      // Warning Patterns (Worst Day)
-      final failurePattern = _generateFailurePatternInsight(stats);
-      if (failurePattern != null) insights.add(failurePattern);
+      final warning = _failurePattern(stats);
+      if (warning != null) warnings.add(warning);
     }
 
-    // Sort by priority (High first)
+    // Only add the worst warnings — never spam one per habit
+    warnings.sort((a, b) => b.priority.index.compareTo(a.priority.index));
+    insights.addAll(warnings.take(_maxWarnings));
+
+    // Sort: high priority first
     insights.sort((a, b) => b.priority.index.compareTo(a.priority.index));
 
     return insights;
   }
 
-  Insight? _generateGlobalTrendInsight(List<DailySummary> summaries) {
+  // ─────────────────────────────────────────────────
+  // GLOBAL TREND
+  // ─────────────────────────────────────────────────
+
+  Insight? _globalTrend(List<DailySummary> summaries) {
     if (summaries.length < 14) return null;
 
-    final last7Days = summaries.reversed.take(7).toList();
-    final previous7Days = summaries.reversed.skip(7).take(7).toList();
-
-    if (last7Days.isEmpty || previous7Days.isEmpty) return null;
+    final sorted = List.of(summaries)..sort((a, b) => b.date.compareTo(a.date));
+    final last7 = sorted.take(7).toList();
+    final prev7 = sorted.skip(7).take(7).toList();
 
     final last7Rate =
-        last7Days.map((e) => e.completionRate).reduce((a, b) => a + b) / 7;
+        last7.map((e) => e.completionRate).reduce((a, b) => a + b) / 7;
     final prev7Rate =
-        previous7Days.map((e) => e.completionRate).reduce((a, b) => a + b) / 7;
+        prev7.map((e) => e.completionRate).reduce((a, b) => a + b) / 7;
 
-    if (last7Rate > prev7Rate + 0.1) {
-      final percent = ((last7Rate - prev7Rate) * 100).toStringAsFixed(0);
+    final diff = last7Rate - prev7Rate;
+
+    if (diff > 0.1) {
+      final percent = (diff * 100).toStringAsFixed(0);
       return Insight(
-        title: 'في تحسن!',
+        title: 'في تحسن! 📈',
         message:
             'أنت أكثر التزاماً بنسبة $percent% هذا الأسبوع مقارنة بالأسبوع الماضي. استمر!',
         type: InsightType.trend,
@@ -56,20 +69,73 @@ class InsightGenerator {
       );
     }
 
+    if (diff < -0.15) {
+      final percent = (diff.abs() * 100).toStringAsFixed(0);
+      return Insight(
+        title: 'انتبه! 📉',
+        message:
+            'التزامك انخفض بنسبة $percent% هذا الأسبوع. حاول العودة للمسار الصحيح.',
+        type: InsightType.warning,
+        scope: InsightScope.global,
+        priority: InsightPriority.medium,
+      );
+    }
+
     return null;
   }
 
-  Insight? _generateStreakMilestoneInsight(HabitAnalyticsSnapshot stats) {
+  // ─────────────────────────────────────────────────
+  // GLOBAL COMPLETION RATE SUMMARY
+  // ─────────────────────────────────────────────────
+
+  Insight? _globalCompletionRate(List<DailySummary> summaries) {
+    if (summaries.length < 7) return null;
+
+    final sorted = List.of(summaries)..sort((a, b) => b.date.compareTo(a.date));
+    final last7 = sorted.take(7).toList();
+    final rate = last7.map((e) => e.completionRate).reduce((a, b) => a + b) / 7;
+    final percent = (rate * 100).round();
+
+    if (percent >= 80) {
+      return Insight(
+        title: 'أسبوع رائع! 🌟',
+        message:
+            'أكملت $percent% من عاداتك هذا الأسبوع. أنت على المسار الصحيح!',
+        type: InsightType.general,
+        scope: InsightScope.global,
+        priority: InsightPriority.low,
+      );
+    }
+
+    if (percent < 40 && percent > 0) {
+      return Insight(
+        title: 'هناك مجال للتحسن',
+        message:
+            'أكملت $percent% فقط من عاداتك هذا الأسبوع. ابدأ بعادة واحدة صغيرة اليوم.',
+        type: InsightType.general,
+        scope: InsightScope.global,
+        priority: InsightPriority.low,
+      );
+    }
+
+    return null;
+  }
+
+  // ─────────────────────────────────────────────────
+  // STREAK MILESTONES
+  // ─────────────────────────────────────────────────
+
+  Insight? _streakMilestone(HabitAnalyticsSnapshot stats) {
     final streak = stats.streak;
 
-    // Rule: 1 day away from longest streak
+    // One day away from breaking personal record
     if (streak.current > 0 &&
-        streak.longest > 2 &&
+        streak.longest > 3 &&
         streak.current == streak.longest - 1) {
       return Insight(
-        title: 'تنبيه رقم قياسي!',
+        title: 'تنبيه رقم قياسي! 🔥',
         message:
-            "أنت على بعد يوم واحد فقط من معادلة أطول سلسلة نجاح لـ '${stats.habitName}'!",
+            "يوم واحد فقط يفصلك عن كسر رقمك القياسي في '${stats.habitName}'!",
         type: InsightType.streakMilestone,
         scope: InsightScope.habitSpecific,
         priority: InsightPriority.high,
@@ -77,45 +143,35 @@ class InsightGenerator {
       );
     }
 
-    // Rule: Just broke a record (current surpassed longest)
-    // Only triggers at the exact crossover point to
-    // prevent firing every subsequent day.
-    if (streak.current == streak.longest &&
-        streak.current > 3 &&
-        streak.current != streak.longest - 1) {
-      // Check if this is a notable milestone threshold
-      final isMilestone =
-          streak.current == 7 ||
-          streak.current == 14 ||
-          streak.current == 21 ||
-          streak.current == 30 ||
-          streak.current == 50 ||
-          streak.current == 100 ||
-          streak.current % 50 == 0;
-
-      if (isMilestone) {
-        return Insight(
-          title: 'رقم قياسي جديد!',
-          message:
-              "لقد حطمت رقمك القياسي لـ '${stats.habitName}'! أنت الآن في اليوم ${streak.current}!",
-          type: InsightType.streakMilestone,
-          scope: InsightScope.habitSpecific,
-          priority: InsightPriority.high,
-          relatedHabitId: stats.habitId,
-        );
-      }
+    // Just hit a milestone number
+    final milestones = [7, 14, 21, 30, 50, 100];
+    if (milestones.contains(streak.current)) {
+      return Insight(
+        title: 'إنجاز جديد! 🏆',
+        message:
+            "وصلت إلى ${streak.current} يوماً متواصلاً في '${stats.habitName}'! رائع جداً!",
+        type: InsightType.streakMilestone,
+        scope: InsightScope.habitSpecific,
+        priority: InsightPriority.high,
+        relatedHabitId: stats.habitId,
+      );
     }
 
     return null;
   }
 
-  Insight? _generateFailurePatternInsight(HabitAnalyticsSnapshot stats) {
+  // ─────────────────────────────────────────────────
+  // FAILURE PATTERN — strict thresholds
+  // ─────────────────────────────────────────────────
+
+  Insight? _failurePattern(HabitAnalyticsSnapshot stats) {
     if (stats.dayOfWeekCompletionRates.isEmpty) return null;
 
-    // Find the worst day (lowest completion rate)
-    // Only if total scheduled for that day is significant?
-    // Repository doesn't give counts for DOW yet, just rates.
-    // We assume the rate is meaningful.
+    // Need meaningful data — at least 4 weeks means each day should
+    // have been attempted ~4 times. We use rate < 0.35 as the threshold
+    // (failed more than 65% of the time on that day) AND the rate must
+    // be significantly worse than the habit's average rate.
+    final avgRate = stats.completionRateLast30Days;
 
     int? worstDay;
     double lowestRate = 1.0;
@@ -127,24 +183,31 @@ class InsightGenerator {
       }
     });
 
-    // If the worst day has < 50% completion
-    if (worstDay != null && lowestRate < 0.5) {
-      final dayName = _getDayName(worstDay!);
-      return Insight(
-        title: 'تم اكتشاف نمط',
-        message:
-            "غالباً ما تواجه صعوبة في '${stats.habitName}' يوم $dayName. حاول الاستعداد للأمر في الليلة السابقة!",
-        type: InsightType.warning,
-        scope: InsightScope.habitSpecific,
-        priority: InsightPriority.medium,
-        relatedHabitId: stats.habitId,
-      );
-    }
+    // Only fire if:
+    // 1. Worst day rate is below 35%
+    // 2. It's significantly worse than overall average (at least 30% gap)
+    // 3. Overall average is decent (>40%) — otherwise the whole habit is struggling, not just one day
+    final isSignificantPattern =
+        worstDay != null &&
+        lowestRate < 0.35 &&
+        (avgRate - lowestRate) > 0.30 &&
+        avgRate > 0.40;
 
-    return null;
+    if (!isSignificantPattern) return null;
+
+    final dayName = _dayName(worstDay!);
+    return Insight(
+      title: 'نمط أسبوعي ⚠️',
+      message:
+          "تواجه صعوبة في '${stats.habitName}' يوم $dayName باستمرار. جرب تغيير وقت تنفيذها ذلك اليوم.",
+      type: InsightType.warning,
+      scope: InsightScope.habitSpecific,
+      priority: InsightPriority.medium,
+      relatedHabitId: stats.habitId,
+    );
   }
 
-  String _getDayName(int weekday) {
+  String _dayName(int weekday) {
     return switch (weekday) {
       1 => 'الاثنين',
       2 => 'الثلاثاء',

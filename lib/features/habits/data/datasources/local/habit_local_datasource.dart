@@ -26,4 +26,12 @@ abstract class HabitLocalDataSource {
   Future<HabitEventModel?> getEventById(String id);
   Future<MilestoneModel?> getMilestoneById(String id);
   Future<StreakRepairModel?> getStreakRepairById(String id);
+  Future<void> clearAllLocalData();
+
+  // ── App metadata (guest mode flag, preferences, etc.) ──
+  // Used to persist lightweight key-value data across restarts
+  // without a separate package — stored alongside ObjectBox data
+  Future<String?> getMetadata(String key);
+  Future<void> saveMetadata(String key, String value);
+  Future<void> deleteMetadata(String key);
 }

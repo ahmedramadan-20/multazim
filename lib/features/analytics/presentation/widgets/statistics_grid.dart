@@ -1,35 +1,80 @@
 import 'package:flutter/material.dart';
 import 'package:multazim/features/analytics/domain/entities/daily_summary.dart';
 
-class StatisticsGrid extends StatelessWidget {
+class StatisticsGrid extends StatefulWidget {
   final List<DailySummary> summaries;
 
   const StatisticsGrid({super.key, required this.summaries});
 
   @override
-  Widget build(BuildContext context) {
-    if (summaries.isEmpty) {
-      return const SizedBox.shrink();
+  State<StatisticsGrid> createState() => _StatisticsGridState();
+}
+
+class _StatisticsGridState extends State<StatisticsGrid> {
+  late double _avgRate;
+  late int _totalPerfectDays;
+  late String _bestDayStr;
+  late int _currentPerfectStreak;
+  late bool _hasData;
+
+  @override
+  void initState() {
+    super.initState();
+    _calculateStats();
+  }
+
+  @override
+  void didUpdateWidget(covariant StatisticsGrid oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.summaries != oldWidget.summaries) {
+      _calculateStats();
+    }
+  }
+
+  void _calculateStats() {
+    if (widget.summaries.isEmpty) {
+      _hasData = false;
+      _avgRate = 0;
+      _totalPerfectDays = 0;
+      _bestDayStr = '-';
+      _currentPerfectStreak = 0;
+      return;
     }
 
-    // 1. Calculate Average Completion Rate
-    final totalRate = summaries.fold(0.0, (sum, s) => sum + s.completionRate);
-    final avgRate = totalRate / summaries.length;
+    final activeSummaries = widget.summaries
+        .where((s) => s.totalScheduled > 0)
+        .toList();
 
-    // 2. Calculate Best Day (Active)
-    // Map<Weekday, Count> of perfect days
+    if (activeSummaries.isEmpty) {
+      _hasData = false;
+      _avgRate = 0;
+      _totalPerfectDays = 0;
+      _bestDayStr = '-';
+      _currentPerfectStreak = 0;
+      return;
+    }
+
+    _hasData = true;
+
+    // 1. Average completion rate — active days only
+    final totalRate = activeSummaries.fold(
+      0.0,
+      (sum, s) => sum + s.completionRate,
+    );
+    _avgRate = totalRate / activeSummaries.length;
+
+    // 2. Perfect days count
+    _totalPerfectDays = activeSummaries.where((s) => s.isPerfectDay).length;
+
+    // 3. Best weekday
     final perfectDaysByWeekday = <int, int>{};
-    int totalPerfectDays = 0;
-
-    for (var s in summaries) {
+    for (final s in activeSummaries) {
       if (s.isPerfectDay) {
-        totalPerfectDays++;
         final wd = s.date.weekday;
         perfectDaysByWeekday[wd] = (perfectDaysByWeekday[wd] ?? 0) + 1;
       }
     }
 
-    // Find weekday with max perfect days
     int? bestWeekday;
     int maxCount = -1;
     perfectDaysByWeekday.forEach((day, count) {
@@ -39,62 +84,34 @@ class StatisticsGrid extends StatelessWidget {
       }
     });
 
-    final bestDayStr = bestWeekday != null ? _weekdayName(bestWeekday!) : '-';
+    _bestDayStr = bestWeekday != null ? _weekdayName(bestWeekday!) : '-';
 
-    // 3. Current Streak (Global) ??
-    // This is hard to calculate from Aggregate summaries without knowing strictly if *all* habits were done.
-    // 'isPerfectDay' streak?
-    int currentPerfectStreak = 0;
-    // Walk backwards from today/last entry
-    final sorted = List.of(summaries)..sort((a, b) => b.date.compareTo(a.date));
-    for (var s in sorted) {
+    // 4. Perfect streak — walk backwards, skip today if in-progress
+    final sorted = List.of(activeSummaries)
+      ..sort((a, b) => b.date.compareTo(a.date));
+
+    final today = DateTime(
+      DateTime.now().year,
+      DateTime.now().month,
+      DateTime.now().day,
+    );
+
+    _currentPerfectStreak = 0;
+    for (final s in sorted) {
+      final isToday = DateTime(
+        s.date.year,
+        s.date.month,
+        s.date.day,
+      ).isAtSameMomentAs(today);
+      // Today is still in progress — don't break streak if incomplete
+      if (isToday && !s.isPerfectDay) continue;
+
       if (s.isPerfectDay) {
-        currentPerfectStreak++;
+        _currentPerfectStreak++;
       } else {
         break;
       }
     }
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        GridView.count(
-          crossAxisCount: 2,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          mainAxisSpacing: 16,
-          crossAxisSpacing: 16,
-          childAspectRatio: 1.5,
-          children: [
-            _StatCard(
-              title: 'معدل الإنجاز',
-              value: '${(avgRate * 100).toStringAsFixed(1)}%',
-              icon: Icons.pie_chart,
-              color: Colors.blue,
-            ),
-            _StatCard(
-              title: 'أيام مثالية',
-              value: '$totalPerfectDays',
-              icon: Icons.star,
-              color: Colors.amber,
-            ),
-            _StatCard(
-              title: 'أفضل يوم',
-              value: bestDayStr,
-              icon: Icons.calendar_today,
-              color: Colors.green,
-            ),
-            _StatCard(
-              title: 'تتابع مثالي',
-              value: '$currentPerfectStreak',
-              icon: Icons.local_fire_department,
-              color: Colors.orange,
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-      ],
-    );
   }
 
   String _weekdayName(int weekday) {
@@ -110,7 +127,57 @@ class StatisticsGrid extends StatelessWidget {
     if (weekday >= 1 && weekday <= 7) return days[weekday - 1];
     return '';
   }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_hasData) return const SizedBox.shrink();
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        GridView.count(
+          crossAxisCount: 2,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          mainAxisSpacing: 16,
+          crossAxisSpacing: 16,
+          childAspectRatio: 1.5,
+          children: [
+            _StatCard(
+              title: 'معدل الإنجاز',
+              value: '${(_avgRate * 100).toStringAsFixed(1)}%',
+              icon: Icons.pie_chart,
+              color: Colors.blue,
+            ),
+            _StatCard(
+              title: 'أيام مثالية',
+              value: '$_totalPerfectDays',
+              icon: Icons.star,
+              color: Colors.amber,
+            ),
+            _StatCard(
+              title: 'أفضل يوم',
+              value: _bestDayStr,
+              icon: Icons.calendar_today,
+              color: Colors.green,
+            ),
+            _StatCard(
+              title: 'تتابع مثالي',
+              value: '$_currentPerfectStreak',
+              icon: Icons.local_fire_department,
+              color: Colors.orange,
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+      ],
+    );
+  }
 }
+
+// ─────────────────────────────────────────────────
+// STAT CARD
+// ─────────────────────────────────────────────────
 
 class _StatCard extends StatelessWidget {
   final String title;

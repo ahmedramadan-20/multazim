@@ -5,6 +5,7 @@ import '../../models/habit_model.dart';
 import '../../models/habit_event_model.dart';
 import '../../models/streak_repair_model.dart';
 import '../../models/milestone_model.dart';
+import '../../models/app_metadata_model.dart';
 import 'habit_local_datasource.dart';
 import '../../../../../core/utils/date_utils.dart';
 
@@ -17,12 +18,18 @@ class ObjectBoxHabitDataSource implements HabitLocalDataSource {
   final Box<HabitEventModel> _eventBox;
   final Box<StreakRepairModel> _repairBox;
   final Box<MilestoneModel> _milestoneBox;
+  final Box<AppMetadataModel> _metadataBox;
 
   ObjectBoxHabitDataSource(ObjectBoxStore store)
     : _habitBox = store.store.box<HabitModel>(),
       _eventBox = store.store.box<HabitEventModel>(),
       _repairBox = store.store.box<StreakRepairModel>(),
-      _milestoneBox = store.store.box<MilestoneModel>();
+      _milestoneBox = store.store.box<MilestoneModel>(),
+      _metadataBox = store.store.box<AppMetadataModel>();
+
+  // ─────────────────────────────────────────────────
+  // HABITS
+  // ─────────────────────────────────────────────────
 
   @override
   Future<List<HabitModel>> getHabits() async {
@@ -71,6 +78,10 @@ class ObjectBoxHabitDataSource implements HabitLocalDataSource {
       throw LocalException('Failed to delete habit $id: $e');
     }
   }
+
+  // ─────────────────────────────────────────────────
+  // EVENTS
+  // ─────────────────────────────────────────────────
 
   @override
   Future<void> saveEvent(HabitEventModel event) async {
@@ -146,6 +157,31 @@ class ObjectBoxHabitDataSource implements HabitLocalDataSource {
   }
 
   @override
+  Future<HabitEventModel?> getEventById(String id) async {
+    try {
+      final query = _eventBox.query(HabitEventModel_.id.equals(id)).build();
+      final result = query.findFirst();
+      query.close();
+      return result;
+    } catch (e) {
+      throw LocalException('Failed to get event $id: $e');
+    }
+  }
+
+  @override
+  Future<List<HabitEventModel>> getAllEvents() async {
+    try {
+      return _eventBox.getAll();
+    } catch (e) {
+      throw LocalException('Failed to get all events: $e');
+    }
+  }
+
+  // ─────────────────────────────────────────────────
+  // STREAK REPAIRS
+  // ─────────────────────────────────────────────────
+
+  @override
   Future<void> saveStreakRepair(StreakRepairModel repair) async {
     try {
       _repairBox.put(repair);
@@ -168,6 +204,31 @@ class ObjectBoxHabitDataSource implements HabitLocalDataSource {
       throw LocalException('Failed to get repairs for habit $habitId: $e');
     }
   }
+
+  @override
+  Future<List<StreakRepairModel>> getAllStreakRepairs() async {
+    try {
+      return _repairBox.getAll();
+    } catch (e) {
+      throw LocalException('Failed to get all streak repairs: $e');
+    }
+  }
+
+  @override
+  Future<StreakRepairModel?> getStreakRepairById(String id) async {
+    try {
+      final query = _repairBox.query(StreakRepairModel_.id.equals(id)).build();
+      final result = query.findFirst();
+      query.close();
+      return result;
+    } catch (e) {
+      throw LocalException('Failed to get streak repair $id: $e');
+    }
+  }
+
+  // ─────────────────────────────────────────────────
+  // MILESTONES
+  // ─────────────────────────────────────────────────
 
   @override
   Future<void> saveMilestone(MilestoneModel milestone) async {
@@ -203,36 +264,6 @@ class ObjectBoxHabitDataSource implements HabitLocalDataSource {
   }
 
   @override
-  Future<List<HabitEventModel>> getAllEvents() async {
-    try {
-      return _eventBox.getAll();
-    } catch (e) {
-      throw LocalException('Failed to get all events: $e');
-    }
-  }
-
-  @override
-  Future<List<StreakRepairModel>> getAllStreakRepairs() async {
-    try {
-      return _repairBox.getAll();
-    } catch (e) {
-      throw LocalException('Failed to get all streak repairs: $e');
-    }
-  }
-
-  @override
-  Future<HabitEventModel?> getEventById(String id) async {
-    try {
-      final query = _eventBox.query(HabitEventModel_.id.equals(id)).build();
-      final result = query.findFirst();
-      query.close();
-      return result;
-    } catch (e) {
-      throw LocalException('Failed to get event $id: $e');
-    }
-  }
-
-  @override
   Future<MilestoneModel?> getMilestoneById(String id) async {
     try {
       final query = _milestoneBox.query(MilestoneModel_.id.equals(id)).build();
@@ -244,15 +275,77 @@ class ObjectBoxHabitDataSource implements HabitLocalDataSource {
     }
   }
 
+  // ─────────────────────────────────────────────────
+  // METADATA — lightweight key-value persistence
+  // Used for guest mode flag and other app preferences
+  // ─────────────────────────────────────────────────
+
   @override
-  Future<StreakRepairModel?> getStreakRepairById(String id) async {
+  Future<String?> getMetadata(String key) async {
     try {
-      final query = _repairBox.query(StreakRepairModel_.id.equals(id)).build();
+      final query = _metadataBox
+          .query(AppMetadataModel_.key.equals(key))
+          .build();
       final result = query.findFirst();
       query.close();
-      return result;
+      return result?.value;
     } catch (e) {
-      throw LocalException('Failed to get streak repair $id: $e');
+      throw LocalException('Failed to get metadata for key $key: $e');
+    }
+  }
+
+  @override
+  Future<void> saveMetadata(String key, String value) async {
+    try {
+      // Check for existing entry to update rather than duplicate
+      final query = _metadataBox
+          .query(AppMetadataModel_.key.equals(key))
+          .build();
+      final existing = query.findFirst();
+      query.close();
+
+      if (existing != null) {
+        existing.value = value;
+        _metadataBox.put(existing);
+      } else {
+        _metadataBox.put(AppMetadataModel(key: key, value: value));
+      }
+    } catch (e) {
+      throw LocalException('Failed to save metadata for key $key: $e');
+    }
+  }
+
+  @override
+  Future<void> deleteMetadata(String key) async {
+    try {
+      final query = _metadataBox
+          .query(AppMetadataModel_.key.equals(key))
+          .build();
+      final existing = query.findFirst();
+      query.close();
+      if (existing != null) {
+        _metadataBox.remove(existing.dbId);
+      }
+    } catch (e) {
+      throw LocalException('Failed to delete metadata for key $key: $e');
+    }
+  }
+
+  // ─────────────────────────────────────────────────
+  // CLEAR ALL
+  // ─────────────────────────────────────────────────
+
+  @override
+  Future<void> clearAllLocalData() async {
+    try {
+      _habitBox.removeAll();
+      _eventBox.removeAll();
+      _repairBox.removeAll();
+      _milestoneBox.removeAll();
+      // Intentionally keep metadata — guest mode flag should survive
+      // a sign-out so the user doesn't see the welcome screen again
+    } catch (e) {
+      throw LocalException('Failed to clear local data: $e');
     }
   }
 }

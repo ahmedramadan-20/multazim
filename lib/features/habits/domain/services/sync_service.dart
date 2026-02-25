@@ -9,6 +9,58 @@ class SyncService {
   SyncService({required this.localDataSource, required this.remoteDataSource});
 
   // ─────────────────────────────────────────────────
+  // FULL SYNC — Push local changes then Pull
+  // ─────────────────────────────────────────────────
+
+  Future<void> fullSync() async {
+    try {
+      // 1. Push local changes to remote
+      await pushLocalData();
+
+      // 2. Pull remote changes and merge
+      await pullAndMerge();
+
+      developer.log('Full sync complete', name: 'multazim.sync');
+    } catch (e) {
+      developer.log('Full sync failed: $e', name: 'multazim.sync', level: 1000);
+      rethrow;
+    }
+  }
+
+  // ─────────────────────────────────────────────────
+  // FULL PUSH — Migrates local data to cloud
+  // ─────────────────────────────────────────────────
+
+  Future<void> pushLocalData() async {
+    try {
+      final habits = await localDataSource.getHabits();
+      for (final h in habits) {
+        await remoteDataSource.syncHabit(h);
+      }
+
+      final events = await localDataSource.getAllEvents();
+      for (final e in events) {
+        await remoteDataSource.syncEvent(e);
+      }
+
+      final milestones = await localDataSource.getAllMilestones();
+      for (final m in milestones) {
+        await remoteDataSource.syncMilestone(m);
+      }
+
+      final repairs = await localDataSource.getAllStreakRepairs();
+      for (final r in repairs) {
+        await remoteDataSource.syncStreakRepair(r);
+      }
+
+      developer.log('Push complete', name: 'multazim.sync');
+    } catch (e) {
+      developer.log('Push failed: $e', name: 'multazim.sync', level: 1000);
+      rethrow;
+    }
+  }
+
+  // ─────────────────────────────────────────────────
   // FULL PULL — called after login on a new device
   // Pulls everything from Supabase and merges into
   // local ObjectBox. Safe to call multiple times.
@@ -20,9 +72,9 @@ class SyncService {
       await _mergeEvents();
       await _mergeMilestones();
       await _mergeStreakRepairs();
-      developer.log('Sync complete', name: 'multazim.sync');
+      developer.log('Pull complete', name: 'multazim.sync');
     } catch (e) {
-      developer.log('Sync failed: $e', name: 'multazim.sync', level: 1000);
+      developer.log('Pull failed: $e', name: 'multazim.sync', level: 1000);
       rethrow;
     }
   }
