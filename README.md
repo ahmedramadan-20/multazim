@@ -16,7 +16,7 @@
 
 **Multazim** (ملتزم — "committed") is a habit tracking app designed to help users build and maintain positive daily habits. Built with **Clean Architecture** principles in Flutter, it emphasizes separation of concerns, testability, and scalability.
 
-> 🚧 **Status:** Phase 5 complete + Auth & Cloud Sync. Local persistence with ObjectBox, remote sync with Supabase.
+> 🚧 **Status:** Phase 5 complete + Auth & Robust Cloud Sync. Local persistence with ObjectBox, background remote sync with Supabase and connectivity-aware restoration.
 
 ---
 
@@ -31,6 +31,7 @@ lib/
 │   ├── di/                       # GetIt dependency injection
 │   ├── error/                    # Failures & Exceptions
 │   ├── router/                   # GoRouter configuration
+│   ├── services/                 # ConnectivityService
 │   ├── theme/                    # AppTheme, AppColors
 │   └── utils/                    # DateTime extensions
 │
@@ -77,7 +78,7 @@ UI (Widget) → Cubit → UseCase → Repository (interface) → DataSource → 
 ## ✅ Features
 
 - **Authentication** — Email/password login and sign-up via Supabase with auth state persistence and session management.
-- **Cloud Sync** — Bi-directional data sync between local ObjectBox and remote Supabase with conflict resolution (version-based).
+- **Cloud Sync** — Robust background sync with network restoration awareness. Automatically pushes guest data during account creation and migrates local changes to the cloud seamlessly.
 - **Habit Management** — CRUD for habits with customizable icons, colors, and difficulty.
 - **Advanced Scheduling** — Daily habits or "X times per week" (ISO-week compliant).
 - **Goal Types** — Binary (Yes/No) or Quantitative (e.g., "500ml water", "10 pages read").
@@ -94,10 +95,11 @@ UI (Widget) → Cubit → UseCase → Repository (interface) → DataSource → 
 
 ## ⚡ Performance Optimizations
 
+- **Background Sync Listener** — Uses `connectivity_plus` to automatically trigger data synchronization as soon as internet connectivity is restored, without requiring app interaction.
+- **Guest-to-Account Migration** — Atomic push-before-pull strategy during sign-up ensures guest habits are uploaded before account data is merged.
 - **Batch Data Fetching** — `HabitsCubit.loadHabits()` uses 3 batch queries instead of 4×N per-habit queries (N+1 elimination).
 - **Batch Sync** — `SyncService` fetches all milestones and streak repairs in a single network call per entity type.
 - **O(N+W) Streak Algorithm** — Consistency streak calculation uses a pointer-based sliding window instead of O(N×W) nested scans.
-- **Milestone-Based Insights** — "New Record" insight fires only at notable thresholds (7, 14, 21, 30, 50, 100…) to prevent daily spam.
 - **Static Color Parsing** — `HabitCard` color parsing extracted to a static helper to avoid re-computation on every widget rebuild.
 
 ---
@@ -127,6 +129,7 @@ The app follows modern design principles to provide a premium and tactile experi
 | **Branding** | flutter_launcher_icons |
 | **ID Generation** | uuid |
 | **Environment** | flutter_dotenv |
+| **Connectivity** | connectivity_plus |
 
 ---
 
