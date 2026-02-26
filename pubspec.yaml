@@ -57,6 +57,9 @@ dependencies:
   path_provider: any
   equatable: any
   shimmer: ^3.0.0
+  flutter_animate: ^4.5.2
+  animate_do: ^4.2.0
+  confetti: ^0.8.0
   
   
 dev_dependencies:

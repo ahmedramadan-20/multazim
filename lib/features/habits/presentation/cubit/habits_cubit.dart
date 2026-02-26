@@ -116,15 +116,18 @@ class HabitsCubit extends Cubit<HabitsState> {
         final events = eventsByHabit[habit.id] ?? [];
         final repairs = repairsByHabit[habit.id] ?? [];
 
-        // Today's event — filter from batch
-        todayEvents[habit.id] = events
-            .where(
-              (e) =>
-                  e.habitId == habit.id &&
-                  !e.date.isBefore(todayStart) &&
-                  !e.date.isAfter(todayEnd),
-            )
-            .firstOrNull;
+        // Today's event — filter from batch and pick latest if duplicates exist
+        todayEvents[habit.id] =
+            (events
+                    .where(
+                      (e) =>
+                          e.habitId == habit.id &&
+                          !e.date.isBefore(todayStart) &&
+                          !e.date.isAfter(todayEnd),
+                    )
+                    .toList()
+                  ..sort((a, b) => b.createdAt.compareTo(a.createdAt)))
+                .firstOrNull;
 
         // Streak calculation
         streaks[habit.id] = _streakService.calculateStreak(

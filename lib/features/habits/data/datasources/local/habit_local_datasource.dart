@@ -13,6 +13,7 @@ abstract class HabitLocalDataSource {
   Future<List<HabitEventModel>> getEventsForHabit(String habitId);
   Future<List<HabitEventModel>> getEventsForDate(DateTime date);
   Future<HabitEventModel?> getTodayEvent(String habitId);
+  Future<HabitEventModel?> getEventByDate(String habitId, DateTime date);
 
   // Phase 5
   Future<void> saveStreakRepair(StreakRepairModel repair);

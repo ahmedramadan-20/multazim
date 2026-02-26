@@ -157,6 +157,29 @@ class ObjectBoxHabitDataSource implements HabitLocalDataSource {
   }
 
   @override
+  Future<HabitEventModel?> getEventByDate(String habitId, DateTime date) async {
+    try {
+      final start = date.startOfDay.millisecondsSinceEpoch;
+      final end = date.endOfDay.millisecondsSinceEpoch;
+
+      final query = _eventBox
+          .query(
+            HabitEventModel_.habitId
+                .equals(habitId)
+                .and(HabitEventModel_.date.between(start, end)),
+          )
+          .build();
+      final result = query.findFirst();
+      query.close();
+      return result;
+    } catch (e) {
+      throw LocalException(
+        'Failed to get event for habit $habitId on $date: $e',
+      );
+    }
+  }
+
+  @override
   Future<HabitEventModel?> getEventById(String id) async {
     try {
       final query = _eventBox.query(HabitEventModel_.id.equals(id)).build();

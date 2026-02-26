@@ -13,14 +13,17 @@ class CompleteHabitUseCase {
     int? countValue,
     String? note,
   }) async {
+    // ── Check for existing event for this day to avoid duplicates ──
+    final existingEvent = await repository.getEventByDate(habitId, date);
+
     final event = HabitEvent(
-      id: const Uuid().v4(),
+      id: existingEvent?.id ?? const Uuid().v4(),
       habitId: habitId,
       date: date,
       status: HabitEventStatus.completed,
       countValue: countValue,
       note: note,
-      createdAt: DateTime.now(),
+      createdAt: existingEvent?.createdAt ?? DateTime.now(),
     );
     return repository.saveEvent(event);
   }

@@ -126,6 +126,16 @@ class HabitRepositoryImpl implements HabitRepository {
   }
 
   @override
+  Future<HabitEvent?> getEventByDate(String habitId, DateTime date) async {
+    try {
+      final model = await localDataSource.getEventByDate(habitId, date);
+      return model?.toEntity();
+    } on LocalException catch (e) {
+      throw LocalFailure(e.message);
+    }
+  }
+
+  @override
   Future<void> saveStreakRepair(StreakRepair repair) async {
     try {
       final model = StreakRepairModel.fromEntity(repair);

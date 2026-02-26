@@ -14,6 +14,7 @@ abstract class HabitRepository {
   Future<List<HabitEvent>> getEventsForHabit(String habitId);
   Future<List<HabitEvent>> getEventsForDate(DateTime date);
   Future<HabitEvent?> getTodayEvent(String habitId);
+  Future<HabitEvent?> getEventByDate(String habitId, DateTime date);
 
   // Phase 5: Motivation Persistence
   Future<void> saveStreakRepair(StreakRepair repair);
