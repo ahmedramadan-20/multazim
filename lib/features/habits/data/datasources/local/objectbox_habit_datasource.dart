@@ -41,6 +41,14 @@ class ObjectBoxHabitDataSource implements HabitLocalDataSource {
   }
 
   @override
+  Stream<List<HabitModel>> watchHabits() {
+    return _habitBox
+        .query()
+        .watch(triggerImmediately: true)
+        .map((q) => q.find());
+  }
+
+  @override
   Future<HabitModel?> getHabitById(String id) async {
     try {
       final query = _habitBox.query(HabitModel_.id.equals(id)).build();
@@ -132,6 +140,25 @@ class ObjectBoxHabitDataSource implements HabitLocalDataSource {
     } catch (e) {
       throw LocalException('Failed to get events for date $date: $e');
     }
+  }
+
+  @override
+  Stream<List<HabitEventModel>> watchEventsForDate(DateTime date) {
+    final start = date.startOfDay.millisecondsSinceEpoch;
+    final end = date.endOfDay.millisecondsSinceEpoch;
+
+    return _eventBox
+        .query(HabitEventModel_.date.between(start, end))
+        .watch(triggerImmediately: true)
+        .map((q) => q.find());
+  }
+
+  @override
+  Stream<List<HabitEventModel>> watchAllEvents() {
+    return _eventBox
+        .query()
+        .watch(triggerImmediately: true)
+        .map((q) => q.find());
   }
 
   @override
@@ -238,6 +265,14 @@ class ObjectBoxHabitDataSource implements HabitLocalDataSource {
   }
 
   @override
+  Stream<List<StreakRepairModel>> watchAllStreakRepairs() {
+    return _repairBox
+        .query()
+        .watch(triggerImmediately: true)
+        .map((q) => q.find());
+  }
+
+  @override
   Future<StreakRepairModel?> getStreakRepairById(String id) async {
     try {
       final query = _repairBox.query(StreakRepairModel_.id.equals(id)).build();
@@ -284,6 +319,14 @@ class ObjectBoxHabitDataSource implements HabitLocalDataSource {
     } catch (e) {
       throw LocalException('Failed to get all milestones: $e');
     }
+  }
+
+  @override
+  Stream<List<MilestoneModel>> watchAllMilestones() {
+    return _milestoneBox
+        .query()
+        .watch(triggerImmediately: true)
+        .map((q) => q.find());
   }
 
   @override

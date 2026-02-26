@@ -21,8 +21,8 @@ enum HabitScheduleType { daily, timesPerWeek, customDays }
 
 class HabitSchedule extends Equatable {
   final HabitScheduleType type;
-  final int? timesPerWeek; // e.g. 3
-  final List<int>? customDays; // 1=Mon … 7=Sun
+  final int? timesPerWeek;
+  final List<int>? customDays;
 
   const HabitSchedule.daily()
     : type = HabitScheduleType.daily,
@@ -51,14 +51,40 @@ class HabitGoal extends Equatable {
   final String? unit;
 
   const HabitGoal._({required this.type, this.targetValue, this.unit});
-
   const HabitGoal.binary() : this._(type: HabitGoalType.binary);
-
   const HabitGoal.numeric(double value, String unit)
     : this._(type: HabitGoalType.numeric, targetValue: value, unit: unit);
 
   @override
   List<Object?> get props => [type, targetValue, unit];
+}
+
+/// Lightweight time-of-day value object.
+/// Stored as total minutes since midnight (0–1439).
+/// e.g. 5:30 AM = 330, 9:00 PM = 1260
+class HabitReminderTime extends Equatable {
+  final int hour; // 0–23
+  final int minute; // 0–59
+
+  const HabitReminderTime({required this.hour, required this.minute});
+
+  /// Construct from total minutes since midnight
+  factory HabitReminderTime.fromMinutes(int totalMinutes) {
+    return HabitReminderTime(
+      hour: totalMinutes ~/ 60,
+      minute: totalMinutes % 60,
+    );
+  }
+
+  /// Total minutes since midnight — used for storage
+  int get totalMinutes => hour * 60 + minute;
+
+  /// Display string e.g. "05:30" or "21:00"
+  String get display =>
+      '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
+
+  @override
+  List<Object?> get props => [hour, minute];
 }
 
 class Habit extends Equatable {
@@ -69,15 +95,17 @@ class Habit extends Equatable {
   final HabitCategory category;
   final HabitSchedule schedule;
   final HabitGoal goal;
-  final int difficulty; // 1–5
+  final int difficulty;
   final StrictnessLevel strictness;
   final DateTime startDate;
   final DateTime? endDate;
   final bool isActive;
   final DateTime createdAt;
-
-  /// Used for sync & conflict resolution
   final int version;
+
+  /// Optional daily reminder time.
+  /// null = no reminder set for this habit.
+  final HabitReminderTime? reminderTime;
 
   const Habit({
     required this.id,
@@ -94,7 +122,9 @@ class Habit extends Equatable {
     this.isActive = true,
     required this.createdAt,
     this.version = 1,
+    this.reminderTime,
   });
+
   Habit copyWith({
     String? id,
     String? name,
@@ -110,6 +140,8 @@ class Habit extends Equatable {
     bool? isActive,
     DateTime? createdAt,
     int? version,
+    HabitReminderTime? reminderTime,
+    bool clearReminderTime = false,
   }) {
     return Habit(
       id: id ?? this.id,
@@ -126,12 +158,14 @@ class Habit extends Equatable {
       isActive: isActive ?? this.isActive,
       createdAt: createdAt ?? this.createdAt,
       version: version ?? this.version,
+      reminderTime: clearReminderTime
+          ? null
+          : (reminderTime ?? this.reminderTime),
     );
   }
 
   Habit incrementVersion() => copyWith(version: version + 1);
 
-  /// Determines whether the habit is *available* on a given date
   bool isScheduledOn(DateTime date) {
     final checkDate = DateTime(date.year, date.month, date.day);
     final start = DateTime(startDate.year, startDate.month, startDate.day);
@@ -149,7 +183,6 @@ class Habit extends Equatable {
       case HabitScheduleType.customDays:
         return schedule.customDays?.contains(checkDate.weekday) ?? false;
       case HabitScheduleType.timesPerWeek:
-        // Availability is daily; completion is validated elsewhere
         return true;
     }
   }
@@ -170,5 +203,6 @@ class Habit extends Equatable {
     isActive,
     createdAt,
     version,
+    reminderTime,
   ];
 }

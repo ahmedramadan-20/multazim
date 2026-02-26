@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/router/app_routes.dart';
@@ -122,7 +123,7 @@ class HabitDetailView extends StatelessWidget {
                           ),
                         ],
                       ),
-                    ),
+                    ).animate().fadeIn().slideY(begin: 0.2, end: 0),
                   ),
                 ),
               ),
@@ -138,7 +139,7 @@ class HabitDetailView extends StatelessWidget {
                         children: [
                           Expanded(
                             child: HabitStatCard(
-                              title: 'السلسلة الحالية',
+                              title: 'السلسلة',
                               value: '${streak.current}',
                               unit: 'يوم',
                               icon: '🔥',
@@ -149,7 +150,7 @@ class HabitDetailView extends StatelessWidget {
                           const SizedBox(width: 12),
                           Expanded(
                             child: HabitStatCard(
-                              title: 'أطول سلسلة',
+                              title: 'الأطول',
                               value: '${streak.longest}',
                               unit: 'يوم',
                               icon: '🏆',
@@ -160,7 +161,7 @@ class HabitDetailView extends StatelessWidget {
                           const SizedBox(width: 12),
                           Expanded(
                             child: HabitStatCard(
-                              title: 'إجمالي الإنجازات',
+                              title: 'الإنجاز',
                               value:
                                   '${events.where((e) => e.status == HabitEventStatus.completed).length}',
                               unit: 'مرة',
@@ -170,63 +171,81 @@ class HabitDetailView extends StatelessWidget {
                             ),
                           ),
                         ],
-                      ),
+                      ).animate(delay: 200.ms).fadeIn().slideY(begin: 0.1, end: 0),
                       const SizedBox(height: 24),
 
                       // ── 30-Day Mini Calendar ──────
-                      Text(
-                        'آخر 30 يوم',
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 12),
-                      HabitMiniCalendar(events: events, habitColor: habitColor),
-                      const SizedBox(height: 8),
+                      Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'آخر 30 يوم',
+                                style: Theme.of(context).textTheme.titleMedium
+                                    ?.copyWith(fontWeight: FontWeight.bold),
+                              ),
+                              const SizedBox(height: 12),
+                              HabitMiniCalendar(
+                                events: events,
+                                habitColor: habitColor,
+                              ),
+                              const SizedBox(height: 8),
 
-                      // Legend
-                      Row(
-                        children: [
-                          HabitLegendDot(color: habitColor, label: 'مكتمل'),
-                          const SizedBox(width: 16),
-                          HabitLegendDot(
-                            color: Colors.orange[300]!,
-                            label: 'متخطى',
-                          ),
-                          const SizedBox(width: 16),
-                          HabitLegendDot(
-                            color: Colors.red[300]!,
-                            label: 'فائت/فشل',
-                          ),
-                          const SizedBox(width: 16),
-                          HabitLegendDot(
-                            color: colorScheme.surfaceContainerHighest,
-                            label: 'لا شيء',
-                          ),
-                        ],
-                      ),
+                              // Legend
+                              Row(
+                                children: [
+                                  HabitLegendDot(
+                                    color: habitColor,
+                                    label: 'مكتمل',
+                                  ),
+                                  const SizedBox(width: 16),
+                                  HabitLegendDot(
+                                    color: Colors.orange[300]!,
+                                    label: 'متخطى',
+                                  ),
+                                  const SizedBox(width: 16),
+                                  HabitLegendDot(
+                                    color: Colors.red[300]!,
+                                    label: 'فشل',
+                                  ),
+                                  const SizedBox(width: 16),
+                                  HabitLegendDot(
+                                    color: colorScheme.surfaceContainerHighest,
+                                    label: 'لا شيء',
+                                  ),
+                                ],
+                              ),
+                            ],
+                          )
+                          .animate(delay: 400.ms)
+                          .fadeIn()
+                          .slideY(begin: 0.1, end: 0),
                       const SizedBox(height: 24),
 
                       // ── Milestones ────────────────
-                      if (milestones.isNotEmpty) ...[
-                        Text(
-                          'الإنجازات',
-                          style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 12),
-                        SizedBox(
-                          height: 88,
-                          child: ListView.builder(
-                            scrollDirection: Axis.horizontal,
-                            itemCount: milestones.length,
-                            itemBuilder: (context, index) {
-                              final m = milestones[index];
-                              return MilestoneCard(milestone: m);
-                            },
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                      ],
+                      if (milestones.isNotEmpty)
+                        ...[
+                              Text(
+                                'الإنجازات',
+                                style: Theme.of(context).textTheme.titleMedium
+                                    ?.copyWith(fontWeight: FontWeight.bold),
+                              ),
+                              const SizedBox(height: 12),
+                              SizedBox(
+                                height: 88,
+                                child: ListView.builder(
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount: milestones.length,
+                                  itemBuilder: (context, index) {
+                                    final m = milestones[index];
+                                    return MilestoneCard(milestone: m);
+                                  },
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                            ]
+                            .animate(delay: 600.ms)
+                            .fadeIn()
+                            .slideY(begin: 0.1, end: 0),
 
                       // ── Event History ─────────────
                       Text(
@@ -259,9 +278,12 @@ class HabitDetailView extends StatelessWidget {
                       delegate: SliverChildBuilderDelegate((context, index) {
                         final event = events[index];
                         return HabitEventTile(
-                          event: event,
-                          habitColor: habitColor,
-                        );
+                              event: event,
+                              habitColor: habitColor,
+                            )
+                            .animate(delay: (800 + (index * 50)).ms)
+                            .fadeIn(duration: 400.ms)
+                            .slideX(begin: 0.1, end: 0);
                       }, childCount: events.length),
                     ),
 

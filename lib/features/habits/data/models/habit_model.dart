@@ -5,22 +5,20 @@ import '../../domain/entities/habit.dart';
 @Entity()
 class HabitModel {
   @Id()
-  int dbId = 0; // ObjectBox internal ID
+  int dbId = 0;
 
   @Unique()
-  late String id; // UUID (shared with Supabase)
+  late String id;
 
   late String name;
   late String icon;
   late String color;
 
-  // Stored as string enums
   late String categoryName;
   late String scheduleType;
   late String goalType;
   late String strictnessName;
 
-  // Serialized JSON blobs
   late String scheduleJson;
   late String goalJson;
 
@@ -29,9 +27,11 @@ class HabitModel {
   DateTime? endDate;
   late bool isActive;
   late DateTime createdAt;
-
-  // Used for conflict resolution with Supabase
   late int version;
+
+  /// Reminder time stored as total minutes since midnight (0–1439).
+  /// null means no reminder set for this habit.
+  int? reminderMinutes;
 
   HabitModel();
 
@@ -69,7 +69,8 @@ class HabitModel {
       ..endDate = habit.endDate
       ..isActive = habit.isActive
       ..createdAt = habit.createdAt
-      ..version = habit.version;
+      ..version = habit.version
+      ..reminderMinutes = habit.reminderTime?.totalMinutes;
   }
 
   // ─────────────────────────────────────────────
@@ -115,7 +116,6 @@ class HabitModel {
             )
           : const HabitGoal.binary();
     } else {
-      // Legacy or corrupted data fallback
       goal = const HabitGoal.binary();
     }
 
@@ -140,6 +140,9 @@ class HabitModel {
       isActive: isActive,
       createdAt: createdAt,
       version: version,
+      reminderTime: reminderMinutes != null
+          ? HabitReminderTime.fromMinutes(reminderMinutes!)
+          : null,
     );
   }
 }

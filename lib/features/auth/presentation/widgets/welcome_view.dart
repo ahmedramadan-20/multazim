@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'feature_row.dart';
 import 'welcome_actions.dart';
 
@@ -20,18 +21,24 @@ class WelcomeView extends StatelessWidget {
 
               // ── App icon ────────────────────────
               Container(
-                width: 96,
-                height: 96,
-                decoration: BoxDecoration(
-                  color: colorScheme.primaryContainer,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.check_circle_rounded,
-                  size: 52,
-                  color: colorScheme.primary,
-                ),
-              ),
+                    width: 96,
+                    height: 96,
+                    decoration: BoxDecoration(
+                      color: colorScheme.primaryContainer,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.check_circle_rounded,
+                      size: 52,
+                      color: colorScheme.primary,
+                    ),
+                  )
+                  .animate()
+                  .fadeIn(duration: 600.ms)
+                  .scale(
+                    begin: const Offset(0.7, 0.7),
+                    curve: Curves.easeOutBack,
+                  ),
               const SizedBox(height: 24),
 
               // ── App name ────────────────────────
@@ -41,15 +48,15 @@ class WelcomeView extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                   color: colorScheme.primary,
                 ),
-              ),
+              ).animate(delay: 200.ms).fadeIn().slideY(begin: 0.2, end: 0),
               const SizedBox(height: 12),
               Text(
-                'بناء عادات يومية تدوم',
+                'عادات تدوم طويلاً',
                 style: theme.textTheme.bodyLarge?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),
                 textAlign: TextAlign.center,
-              ),
+              ).animate(delay: 300.ms).fadeIn().slideY(begin: 0.2, end: 0),
 
               const Spacer(flex: 2),
 
@@ -57,36 +64,39 @@ class WelcomeView extends StatelessWidget {
               const FeatureRow(
                 icon: Icons.offline_bolt_rounded,
                 color: Colors.green,
-                title: 'يعمل بدون إنترنت',
-                subtitle: 'بياناتك محفوظة على جهازك دائماً',
-              ),
+                title: 'بدون إنترنت',
+                subtitle: 'كل بياناتك محفوظة محلياً',
+              ).animate(delay: 500.ms).fadeIn().slideX(begin: 0.1, end: 0),
               const SizedBox(height: 16),
               FeatureRow(
                 icon: Icons.sync_rounded,
                 color: colorScheme.primary,
                 title: 'مزامنة اختيارية',
-                subtitle: 'أنشئ حساباً لمزامنة بياناتك عبر أجهزتك',
-              ),
+                subtitle: 'لحفظ بياناتك عبر الأجهزة',
+              ).animate(delay: 600.ms).fadeIn().slideX(begin: 0.1, end: 0),
               const SizedBox(height: 16),
               const FeatureRow(
                 icon: Icons.bar_chart_rounded,
                 color: Colors.orange,
                 title: 'تحليلات ذكية',
-                subtitle: 'رؤى مبنية على سلوكك اليومي الحقيقي',
-              ),
+                subtitle: 'تتبع تقدمك بدقة',
+              ).animate(delay: 700.ms).fadeIn().slideX(begin: 0.1, end: 0),
 
               const Spacer(flex: 2),
 
-              const WelcomeActions(),
+              const WelcomeActions()
+                  .animate(delay: 900.ms)
+                  .fadeIn()
+                  .slideY(begin: 0.1, end: 0),
 
               const SizedBox(height: 16),
               Text(
-                'بياناتك ملكك — لا حاجة لحساب لاستخدام التطبيق',
+                'تملك بياناتك بالكامل',
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),
                 textAlign: TextAlign.center,
-              ),
+              ).animate(delay: 1100.ms).fadeIn(),
               const SizedBox(height: 24),
             ],
           ),

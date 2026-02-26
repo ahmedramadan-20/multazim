@@ -5,11 +5,14 @@ import '../../models/milestone_model.dart';
 
 abstract class HabitLocalDataSource {
   Future<List<HabitModel>> getHabits();
+  Stream<List<HabitModel>> watchHabits();
   Future<HabitModel?> getHabitById(String id);
   Future<void> saveHabit(HabitModel habit);
   Future<void> deleteHabit(String id);
 
   Future<void> saveEvent(HabitEventModel event);
+  Stream<List<HabitEventModel>> watchEventsForDate(DateTime date);
+  Stream<List<HabitEventModel>> watchAllEvents();
   Future<List<HabitEventModel>> getEventsForHabit(String habitId);
   Future<List<HabitEventModel>> getEventsForDate(DateTime date);
   Future<HabitEventModel?> getTodayEvent(String habitId);
@@ -21,8 +24,10 @@ abstract class HabitLocalDataSource {
   Future<void> saveMilestone(MilestoneModel milestone);
   Future<List<MilestoneModel>> getMilestones(String habitId);
   Future<List<MilestoneModel>> getAllMilestones();
+  Stream<List<MilestoneModel>> watchAllMilestones();
   Future<List<HabitEventModel>> getAllEvents();
   Future<List<StreakRepairModel>> getAllStreakRepairs();
+  Stream<List<StreakRepairModel>> watchAllStreakRepairs();
 
   Future<HabitEventModel?> getEventById(String id);
   Future<MilestoneModel?> getMilestoneById(String id);

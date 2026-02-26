@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../core/router/app_routes.dart';
 import '../cubit/auth_cubit.dart';
 import '../cubit/auth_state.dart';
@@ -78,46 +79,66 @@ class _SignUpPageState extends State<SignUpPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const SignUpHeader(),
+                    const SignUpHeader()
+                        .animate()
+                        .fadeIn(duration: 600.ms)
+                        .slideY(begin: -0.2, end: 0),
                     const SizedBox(height: 40),
 
-                    EmailField(controller: _emailController),
+                    EmailField(controller: _emailController)
+                        .animate(delay: 200.ms)
+                        .fadeIn(duration: 400.ms)
+                        .slideX(begin: -0.1, end: 0),
                     const SizedBox(height: 16),
 
                     PasswordField(
-                      controller: _passwordController,
-                      obscurePassword: _obscurePassword,
-                      onVisibilityChanged: () =>
-                          setState(() => _obscurePassword = !_obscurePassword),
-                    ),
+                          controller: _passwordController,
+                          obscurePassword: _obscurePassword,
+                          onVisibilityChanged: () => setState(
+                            () => _obscurePassword = !_obscurePassword,
+                          ),
+                        )
+                        .animate(delay: 400.ms)
+                        .fadeIn(duration: 400.ms)
+                        .slideX(begin: -0.1, end: 0),
                     const SizedBox(height: 16),
 
                     PasswordField(
-                      controller: _confirmPasswordController,
-                      obscurePassword: _obscureConfirm,
-                      labelText: 'تأكيد كلمة المرور',
-                      onVisibilityChanged: () =>
-                          setState(() => _obscureConfirm = !_obscureConfirm),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'يرجى تأكيد كلمة المرور';
-                        }
-                        if (value != _passwordController.text) {
-                          return 'كلمتا المرور غير متطابقتين';
-                        }
-                        return null;
-                      },
-                    ),
+                          controller: _confirmPasswordController,
+                          obscurePassword: _obscureConfirm,
+                          labelText: 'تأكيد كلمة المرور',
+                          onVisibilityChanged: () => setState(
+                            () => _obscureConfirm = !_obscureConfirm,
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'يرجى تأكيد كلمة المرور';
+                            }
+                            if (value != _passwordController.text) {
+                              return 'كلمتا المرور غير متطابقتين';
+                            }
+                            return null;
+                          },
+                        )
+                        .animate(delay: 600.ms)
+                        .fadeIn(duration: 400.ms)
+                        .slideX(begin: -0.1, end: 0),
                     const SizedBox(height: 32),
 
-                    AuthSubmitButton(onSubmit: _submit, label: 'إنشاء الحساب'),
+                    AuthSubmitButton(onSubmit: _submit, label: 'إنشاء الحساب')
+                        .animate(delay: 800.ms)
+                        .fadeIn(duration: 400.ms)
+                        .scale(
+                          begin: const Offset(0.9, 0.9),
+                          end: const Offset(1, 1),
+                        ),
                     const SizedBox(height: 16),
 
                     AuthNavigationRow(
                       text: 'لديك حساب بالفعل؟',
                       buttonText: 'تسجيل الدخول',
                       onPressed: () => context.go(AppRoutes.login),
-                    ),
+                    ).animate(delay: 1000.ms).fadeIn(),
                   ],
                 ),
               ),

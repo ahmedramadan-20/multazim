@@ -1,3 +1,4 @@
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -7,11 +8,9 @@ import '../cubit/habits_cubit.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../helpers/habit_translation_helper.dart';
 import 'package:intl/intl.dart';
-import '../widgets/schedule_chip.dart';
 
 class CreateHabitPage extends StatefulWidget {
   final Habit? habit;
-
   const CreateHabitPage({super.key, this.habit});
 
   @override
@@ -34,6 +33,7 @@ class _CreateHabitPageState extends State<CreateHabitPage> {
   int _difficulty = 3;
   DateTime _startDate = DateTime.now();
   DateTime? _endDate;
+  HabitReminderTime? _reminderTime;
 
   static const List<String> _emojis = [
     '📝',
@@ -86,6 +86,7 @@ class _CreateHabitPageState extends State<CreateHabitPage> {
       _scheduleType = h.schedule.type;
       _timesPerWeek = h.schedule.timesPerWeek ?? 3;
       _goalType = h.goal.type;
+      _reminderTime = h.reminderTime;
 
       try {
         var cStr = h.color;
@@ -145,6 +146,7 @@ class _CreateHabitPageState extends State<CreateHabitPage> {
       endDate: _endDate,
       createdAt: widget.habit?.createdAt ?? DateTime.now(),
       version: (widget.habit?.version ?? 0) + 1,
+      reminderTime: _reminderTime,
     );
 
     if (widget.habit != null) {
@@ -337,7 +339,7 @@ class _CreateHabitPageState extends State<CreateHabitPage> {
               Row(
                 children: [
                   Expanded(
-                    child: ScheduleChip(
+                    child: _ScheduleChip(
                       label: 'يومي',
                       icon: Icons.repeat,
                       selected: _scheduleType == HabitScheduleType.daily,
@@ -348,7 +350,7 @@ class _CreateHabitPageState extends State<CreateHabitPage> {
                   ),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: ScheduleChip(
+                    child: _ScheduleChip(
                       label: 'أسبوعي',
                       icon: Icons.date_range,
                       selected: _scheduleType == HabitScheduleType.timesPerWeek,
@@ -399,7 +401,7 @@ class _CreateHabitPageState extends State<CreateHabitPage> {
               Row(
                 children: [
                   Expanded(
-                    child: ScheduleChip(
+                    child: _ScheduleChip(
                       label: 'صح / خطأ',
                       icon: Icons.check_circle_outline,
                       selected: _goalType == HabitGoalType.binary,
@@ -409,7 +411,7 @@ class _CreateHabitPageState extends State<CreateHabitPage> {
                   ),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: ScheduleChip(
+                    child: _ScheduleChip(
                       label: 'رقمي',
                       icon: Icons.numbers,
                       selected: _goalType == HabitGoalType.numeric,
@@ -476,7 +478,6 @@ class _CreateHabitPageState extends State<CreateHabitPage> {
                     firstDate: DateTime(2000),
                     lastDate: DateTime(2100),
                   );
-                  // ✅ FIX: mounted check after await
                   if (picked != null) {
                     if (!mounted) return;
                     setState(() => _startDate = picked);
@@ -508,13 +509,30 @@ class _CreateHabitPageState extends State<CreateHabitPage> {
                       firstDate: DateTime(2000),
                       lastDate: DateTime(2100),
                     );
-                    // ✅ FIX: mounted check after await
                     if (picked != null) {
                       if (!mounted) return;
                       setState(() => _endDate = picked);
                     }
                   },
                 ),
+
+              const SizedBox(height: 8),
+              const Divider(),
+              const SizedBox(height: 16),
+
+              // ── Reminder ──────────────────────────
+              Text(
+                'التذكير اليومي',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              _ReminderTile(
+                reminderTime: _reminderTime,
+                onSet: (time) => setState(() => _reminderTime = time),
+                onClear: () => setState(() => _reminderTime = null),
+              ),
 
               const SizedBox(height: 32),
 
@@ -599,5 +617,148 @@ class _CreateHabitPageState extends State<CreateHabitPage> {
       5 => 'صعب جداً',
       _ => '$level',
     };
+  }
+}
+
+// ─────────────────────────────────────────────────
+// REMINDER TILE
+// ─────────────────────────────────────────────────
+
+class _ReminderTile extends StatelessWidget {
+  final HabitReminderTime? reminderTime;
+  final ValueChanged<HabitReminderTime> onSet;
+  final VoidCallback onClear;
+
+  const _ReminderTile({
+    required this.reminderTime,
+    required this.onSet,
+    required this.onClear,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isSet = reminderTime != null;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: isSet
+            ? colorScheme.primaryContainer.withValues(alpha: 0.5)
+            : colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(12),
+        border: isSet
+            ? Border.all(color: colorScheme.primary.withValues(alpha: 0.3))
+            : null,
+      ),
+      child: ListTile(
+        leading: Icon(
+          Icons.notifications_outlined,
+          color: isSet ? colorScheme.primary : colorScheme.onSurfaceVariant,
+        ),
+        title: Text(
+          isSet ? 'تذكير يومي على ${reminderTime!.display}' : 'بدون تذكير',
+          style: TextStyle(
+            color: isSet ? colorScheme.primary : colorScheme.onSurfaceVariant,
+            fontWeight: isSet ? FontWeight.w600 : FontWeight.normal,
+          ),
+        ),
+        subtitle: isSet
+            ? Text(
+                'سيصلك تنبيه كل يوم في هذا الوقت',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              )
+            : null,
+        trailing: isSet
+            ? IconButton(
+                icon: Icon(Icons.close, color: colorScheme.error, size: 20),
+                onPressed: onClear,
+                tooltip: 'إلغاء التذكير',
+              )
+            : Icon(Icons.chevron_right, color: colorScheme.onSurfaceVariant),
+        onTap: () async {
+          final picked = await showTimePicker(
+            context: context,
+            initialTime: reminderTime != null
+                ? TimeOfDay(
+                    hour: reminderTime!.hour,
+                    minute: reminderTime!.minute,
+                  )
+                : const TimeOfDay(hour: 8, minute: 0),
+            helpText: 'اختر وقت التذكير',
+            builder: (context, child) => Directionality(
+              textDirection: ui.TextDirection.rtl,
+              child: child!,
+            ),
+          );
+          if (picked != null) {
+            onSet(HabitReminderTime(hour: picked.hour, minute: picked.minute));
+          }
+        },
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────
+// SCHEDULE / GOAL CHIP
+// ─────────────────────────────────────────────────
+
+class _ScheduleChip extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _ScheduleChip({
+    required this.label,
+    required this.icon,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+        decoration: BoxDecoration(
+          color: selected
+              ? colorScheme.primaryContainer
+              : colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(12),
+          border: selected
+              ? Border.all(color: colorScheme.primary, width: 2)
+              : null,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 18,
+              color: selected
+                  ? colorScheme.primary
+                  : colorScheme.onSurfaceVariant,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+                color: selected
+                    ? colorScheme.primary
+                    : colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

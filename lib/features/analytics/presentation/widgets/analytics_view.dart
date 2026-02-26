@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../cubit/analytics_cubit.dart';
 import '../cubit/analytics_state.dart';
@@ -40,59 +41,75 @@ class AnalyticsView extends StatelessWidget {
                   children: [
                     // ── 1. Statistics Grid (always first) ──
                     StatisticsGrid(summaries: summaries),
+
                     const SizedBox(height: 24),
 
-                    // ── 2. Completion Trend Chart ───────────
                     SectionCard(
-                      title: 'اتجاه الإنجاز',
-                      child: CompletionTrendChart(summaries: summaries),
-                    ),
+                          title: 'اتجاه الإنجاز',
+                          child: CompletionTrendChart(summaries: summaries),
+                        )
+                        .animate(delay: 200.ms)
+                        .fadeIn()
+                        .slideY(begin: 0.1, end: 0),
+
                     const SizedBox(height: 16),
 
                     // ── 3. Heatmap ──────────────────────────
                     SectionCard(
-                      title: 'خريطة الالتزام',
-                      child: HeatmapCalendar(
-                        data: heatmapData,
-                        endDate: DateTime.now(),
-                      ),
-                    ),
+                          title: 'خريطة الالتزام',
+                          child: HeatmapCalendar(
+                            data: heatmapData,
+                            endDate: DateTime.now(),
+                          ),
+                        )
+                        .animate(delay: 400.ms)
+                        .fadeIn()
+                        .slideY(begin: 0.1, end: 0),
+
                     const SizedBox(height: 24),
 
                     // ── 4. Milestones ───────────────────────
-                    if (state.milestones.isNotEmpty) ...[
-                      Text(
-                        'الإنجازات',
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 12),
-                      SizedBox(
-                        height: 100,
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: state.milestones.length,
-                          itemBuilder: (context, index) {
-                            final milestone = state.milestones[index];
-                            return MilestoneCard(milestone: milestone);
-                          },
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                    ],
+                    if (state.milestones.isNotEmpty)
+                      ...[
+                            Text(
+                              'الإنجازات',
+                              style: Theme.of(context).textTheme.titleMedium
+                                  ?.copyWith(fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 12),
+                            SizedBox(
+                              height: 100,
+                              child: ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: state.milestones.length,
+                                itemBuilder: (context, index) {
+                                  final milestone = state.milestones[index];
+                                  return MilestoneCard(milestone: milestone);
+                                },
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                          ]
+                          .animate(delay: 600.ms)
+                          .fadeIn()
+                          .slideY(begin: 0.1, end: 0),
 
                     // ── 5. Insights (bottom — contextual) ──
-                    if (state.insights.isNotEmpty) ...[
-                      Text(
-                        'رؤى وملاحظات',
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 12),
-                      ...state.insights.map(
-                        (insight) => InsightCard(insight: insight),
-                      ),
-                    ],
+                    if (state.insights.isNotEmpty)
+                      ...[
+                            Text(
+                              'رؤى وملاحظات',
+                              style: Theme.of(context).textTheme.titleMedium
+                                  ?.copyWith(fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 12),
+                            ...state.insights.map(
+                              (insight) => InsightCard(insight: insight),
+                            ),
+                          ]
+                          .animate(delay: 800.ms)
+                          .fadeIn()
+                          .slideY(begin: 0.1, end: 0),
 
                     const SizedBox(height: 32),
                   ],

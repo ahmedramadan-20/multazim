@@ -16,6 +16,7 @@ import '../../features/habits/data/datasources/remote/supabase_habit_datasource.
 import '../../features/habits/data/repositories/habit_repository_impl.dart';
 import '../../features/habits/domain/repositories/habit_repository.dart';
 import '../../features/habits/domain/usecases/get_habits_usecase.dart';
+import '../../features/habits/domain/usecases/watch_habits_usecase.dart';
 import '../../features/habits/domain/usecases/create_habit_usecase.dart';
 import '../../features/habits/domain/usecases/complete_habit_usecase.dart';
 import '../../features/habits/domain/usecases/skip_habit_usecase.dart';
@@ -50,7 +51,10 @@ import '../../features/auth/presentation/cubit/auth_cubit.dart';
 import '../../features/habits/domain/services/sync_service.dart';
 import '../../features/habits/domain/usecases/get_all_milestones_usecase.dart';
 import '../../features/habits/domain/usecases/get_all_events_usecase.dart';
+import '../../features/habits/domain/usecases/watch_all_events_usecase.dart';
 import '../../features/habits/domain/usecases/get_all_streak_repairs_usecase.dart';
+import '../../features/habits/domain/usecases/watch_all_streak_repairs_usecase.dart';
+import '../../features/habits/domain/usecases/watch_all_milestones_usecase.dart';
 
 // sl = service locator — the single global instance of GetIt
 // Import this wherever you need to retrieve a dependency
@@ -114,6 +118,7 @@ void _initHabits() {
 
   // Use Cases — ALL registered BEFORE Cubit
   sl.registerLazySingleton(() => GetHabitsUseCase(sl()));
+  sl.registerLazySingleton(() => WatchHabitsUseCase(sl()));
   sl.registerLazySingleton(() => CreateHabitUseCase(sl()));
   sl.registerLazySingleton(() => CompleteHabitUseCase(sl()));
   sl.registerLazySingleton(() => SkipHabitUseCase(sl()));
@@ -126,8 +131,11 @@ void _initHabits() {
   sl.registerLazySingleton(() => SaveMilestoneUseCase(sl()));
   sl.registerLazySingleton(() => SaveStreakRepairUseCase(sl()));
   sl.registerLazySingleton(() => GetAllMilestonesUseCase(sl()));
+  sl.registerLazySingleton(() => WatchAllMilestonesUseCase(sl()));
   sl.registerLazySingleton(() => GetAllEventsUseCase(sl()));
+  sl.registerLazySingleton(() => WatchAllEventsUseCase(sl()));
   sl.registerLazySingleton(() => GetAllStreakRepairsUseCase(sl()));
+  sl.registerLazySingleton(() => WatchAllStreakRepairsUseCase(sl()));
 
   // Domain Services
   sl.registerLazySingleton(() => StreakCalculationService());
@@ -141,21 +149,19 @@ void _initHabits() {
   // Cubit — registered LAST (depends on all use cases above)
   sl.registerLazySingleton(
     () => HabitsCubit(
-      getHabits: sl(),
+      watchHabits: sl(),
+      watchAllEvents: sl(),
+      watchAllStreakRepairs: sl(),
+      watchAllMilestones: sl(),
+      getStreakRepairs: sl(),
       createHabit: sl(),
       completeHabit: sl(),
       skipHabit: sl(),
       updateHabit: sl(),
       deleteHabit: sl(),
-      getStreakRepairs: sl(),
-      getAllEvents: sl(),
-      getAllStreakRepairs: sl(),
-      getAllMilestones: sl(),
-      saveMilestone: sl(),
       saveStreakRepair: sl(),
       streakService: sl(),
       weeklyProgressService: sl(),
-      milestoneGenerator: sl(),
       recoveryService: sl(),
     ),
   );
@@ -215,13 +221,15 @@ void _initAnalytics() {
   sl.registerLazySingleton(
     () => AnalyticsCubit(
       repository: sl(),
-      getHabits: sl(),
+      watchHabits: sl(),
+      watchAllEvents: sl(),
+      watchAllStreakRepairs: sl(),
+      watchAllMilestones: sl(),
       getHabitEvents: sl(),
       getHabitRepairs: sl(),
       getHabitById: sl(),
       getHabitMilestones: sl(),
       streakService: sl(),
-      getAllMilestones: sl(),
     ),
   );
 }

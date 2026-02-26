@@ -34,26 +34,18 @@ class SyncService {
   Future<void> pushLocalData() async {
     try {
       final habits = await localDataSource.getHabits();
-      for (final h in habits) {
-        await remoteDataSource.syncHabit(h);
-      }
+      await remoteDataSource.syncHabitsBatch(habits);
 
       final events = await localDataSource.getAllEvents();
-      for (final e in events) {
-        await remoteDataSource.syncEvent(e);
-      }
+      await remoteDataSource.syncEventsBatch(events);
 
       final milestones = await localDataSource.getAllMilestones();
-      for (final m in milestones) {
-        await remoteDataSource.syncMilestone(m);
-      }
+      await remoteDataSource.syncMilestonesBatch(milestones);
 
       final repairs = await localDataSource.getAllStreakRepairs();
-      for (final r in repairs) {
-        await remoteDataSource.syncStreakRepair(r);
-      }
+      await remoteDataSource.syncStreakRepairsBatch(repairs);
 
-      developer.log('Push complete', name: 'multazim.sync');
+      developer.log('Push complete (Batch)', name: 'multazim.sync');
     } catch (e) {
       developer.log('Push failed: $e', name: 'multazim.sync', level: 1000);
       rethrow;

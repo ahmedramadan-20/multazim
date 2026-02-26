@@ -16,7 +16,7 @@
 
 **Multazim** (ملتزم — "committed") is a habit tracking app designed to help users build and maintain positive daily habits. Built with **Clean Architecture** principles in Flutter, it emphasizes separation of concerns, testability, and scalability.
 
-> 🚧 **Status:** Phase 5 complete + Auth & Robust Cloud Sync. Local persistence with ObjectBox, background remote sync with Supabase and connectivity-aware restoration.
+> 🚧 **Status:** Phase 5.7 Complete — Robust Cloud Sync + Background Notifications (Android). Local persistence with ObjectBox, background remote sync with Supabase and connectivity-aware restoration.
 
 ---
 
@@ -89,6 +89,7 @@ UI (Widget) → Cubit → UseCase → Repository (interface) → DataSource → 
     - **Metric Cards**: "Perfect Days", "Best Performance Day", "Active Streaks".
 - **Smart Insights** — Automated feedback on consistency, performance trends, and milestone-based streak records.
 - **Arabic UI** — Full RTL and localized content for all features.
+- **Background Notifications** — Reliable habit reminders on Android 14+ using exact alarms that fire even when the app is killed.
 - **App Icons** — Custom branded icons for both Android and iOS.
 
 ---

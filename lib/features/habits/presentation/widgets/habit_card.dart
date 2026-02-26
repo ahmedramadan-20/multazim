@@ -6,6 +6,7 @@ import '../../domain/entities/streak.dart';
 import '../cubit/habits_cubit.dart';
 import '../widgets/numeric_completion_sheet.dart';
 import 'package:go_router/go_router.dart';
+import 'package:confetti/confetti.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../helpers/habit_translation_helper.dart';
@@ -42,6 +43,7 @@ class _HabitCardState extends State<HabitCard>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
+  late ConfettiController _confettiController;
 
   @override
   void initState() {
@@ -49,6 +51,9 @@ class _HabitCardState extends State<HabitCard>
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 400),
+    );
+    _confettiController = ConfettiController(
+      duration: const Duration(seconds: 1),
     );
     _scaleAnimation = TweenSequence([
       TweenSequenceItem(
@@ -78,6 +83,7 @@ class _HabitCardState extends State<HabitCard>
   @override
   void dispose() {
     _controller.dispose();
+    _confettiController.dispose();
     super.dispose();
   }
 
@@ -111,9 +117,13 @@ class _HabitCardState extends State<HabitCard>
           widget.habit.id,
           countValue: result,
         );
+        if (result >= _numericTarget) {
+          _confettiController.play();
+        }
       }
     } else {
       context.read<HabitsCubit>().completeHabit(widget.habit.id);
+      _confettiController.play();
     }
   }
 
@@ -122,215 +132,225 @@ class _HabitCardState extends State<HabitCard>
     final habitColor = HabitCard.parseHabitColor(widget.habit.color);
     final colorScheme = Theme.of(context).colorScheme;
 
-    return ScaleTransition(
-      scale: _scaleAnimation,
-      child: Card(
-        margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
-        elevation: _effectivelyCompleted ? 0 : 1,
-        color: _effectivelyCompleted
-            ? habitColor.withValues(alpha: 0.08)
-            : colorScheme.surface,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: _effectivelyCompleted
-              ? BorderSide(color: habitColor.withValues(alpha: 0.4))
-              : BorderSide(
-                  color: colorScheme.outlineVariant.withValues(alpha: 0.5),
-                ),
-        ),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(16),
-          onTap: () => _handleTap(context),
-          onLongPress: () => _showOptionsSheet(context),
-          child: Padding(
-            padding: const EdgeInsets.all(14),
-            child: Row(
-              children: [
-                // ── Icon ──────────────────────────
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: habitColor.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    widget.habit.icon,
-                    style: const TextStyle(fontSize: 24),
-                  ),
-                ),
-                const SizedBox(width: 14),
-
-                // ── Name & Details ────────────────
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        widget.habit.name,
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          decoration: _effectivelyCompleted || isSkipped
-                              ? TextDecoration.lineThrough
-                              : null,
-                          color: _effectivelyCompleted || isSkipped
-                              ? colorScheme.onSurfaceVariant
-                              : colorScheme.onSurface,
-                        ),
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        ScaleTransition(
+          scale: _scaleAnimation,
+          child: Card(
+            margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
+            elevation: _effectivelyCompleted ? 0 : 1,
+            color: _effectivelyCompleted
+                ? habitColor.withValues(alpha: 0.08)
+                : colorScheme.surface,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+              side: _effectivelyCompleted
+                  ? BorderSide(color: habitColor.withValues(alpha: 0.4))
+                  : BorderSide(
+                      color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+                    ),
+            ),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(16),
+              onTap: () => _handleTap(context),
+              onLongPress: () => _showOptionsSheet(context),
+              child: Padding(
+                padding: const EdgeInsets.all(14),
+                child: Row(
+                  children: [
+                    // ── Icon ──────────────────────────
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: habitColor.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      const SizedBox(height: 3),
-                      Text(
-                        HabitTranslationHelper.categoryName(
-                          widget.habit.category,
-                        ),
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: colorScheme.onSurfaceVariant,
-                        ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        widget.habit.icon,
+                        style: const TextStyle(fontSize: 24),
                       ),
+                    ),
+                    const SizedBox(width: 14),
 
-                      // Numeric progress
-                      if (_isNumeric) ...[
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(4),
-                                child: TweenAnimationBuilder<double>(
-                                  tween: Tween(
-                                    begin: 0,
-                                    end: (_currentCount / _numericTarget).clamp(
-                                      0.0,
-                                      1.0,
+                    // ── Name & Details ────────────────
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            widget.habit.name,
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              decoration: _effectivelyCompleted || isSkipped
+                                  ? TextDecoration.lineThrough
+                                  : null,
+                              color: _effectivelyCompleted || isSkipped
+                                  ? colorScheme.onSurfaceVariant
+                                  : colorScheme.onSurface,
+                            ),
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            HabitTranslationHelper.categoryName(
+                              widget.habit.category,
+                            ),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+
+                          // Numeric progress
+                          if (_isNumeric) ...[
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(4),
+                                    child: TweenAnimationBuilder<double>(
+                                      tween: Tween(
+                                        begin: 0,
+                                        end: (_currentCount / _numericTarget)
+                                            .clamp(0.0, 1.0),
+                                      ),
+                                      duration: const Duration(
+                                        milliseconds: 400,
+                                      ),
+                                      curve: Curves.easeOut,
+                                      builder: (context, value, _) =>
+                                          LinearProgressIndicator(
+                                            value: value,
+                                            backgroundColor: habitColor
+                                                .withValues(alpha: 0.1),
+                                            valueColor:
+                                                AlwaysStoppedAnimation<Color>(
+                                                  _numericGoalReached
+                                                      ? Colors.green
+                                                      : habitColor.withValues(
+                                                          alpha: 0.8,
+                                                        ),
+                                                ),
+                                            minHeight: 5,
+                                          ),
                                     ),
                                   ),
-                                  duration: const Duration(milliseconds: 400),
-                                  curve: Curves.easeOut,
-                                  builder: (context, value, _) =>
-                                      LinearProgressIndicator(
-                                        value: value,
-                                        backgroundColor: habitColor.withValues(
-                                          alpha: 0.1,
-                                        ),
-                                        valueColor:
-                                            AlwaysStoppedAnimation<Color>(
-                                              _numericGoalReached
-                                                  ? Colors.green
-                                                  : habitColor.withValues(
-                                                      alpha: 0.8,
-                                                    ),
-                                            ),
-                                        minHeight: 5,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  '$_currentCount/$_numericTarget ${widget.habit.goal.unit ?? ''}',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: _numericGoalReached
+                                        ? Colors.green
+                                        : colorScheme.onSurfaceVariant,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+
+                          // Weekly progress
+                          if (!_isNumeric && widget.weeklyProgress != null) ...[
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(4),
+                                    child: LinearProgressIndicator(
+                                      value:
+                                          widget.weeklyProgress!.current /
+                                          widget.weeklyProgress!.target,
+                                      backgroundColor: habitColor.withValues(
+                                        alpha: 0.1,
                                       ),
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        habitColor.withValues(alpha: 0.7),
+                                      ),
+                                      minHeight: 4,
+                                    ),
+                                  ),
                                 ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              '$_currentCount/$_numericTarget ${widget.habit.goal.unit ?? ''}',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: _numericGoalReached
-                                    ? Colors.green
-                                    : colorScheme.onSurfaceVariant,
-                                fontWeight: FontWeight.bold,
-                              ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  '${widget.weeklyProgress!.current}/${widget.weeklyProgress!.target}',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: colorScheme.onSurfaceVariant,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
-                        ),
-                      ],
+                        ],
+                      ),
+                    ),
 
-                      // Weekly progress
-                      if (!_isNumeric && widget.weeklyProgress != null) ...[
-                        const SizedBox(height: 8),
-                        Row(
+                    // ── Streak Badge ──────────────────
+                    if (widget.streak != null &&
+                        widget.streak!.current > 0 &&
+                        !isSkipped) ...[
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.orange.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            Expanded(
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(4),
-                                child: LinearProgressIndicator(
-                                  value:
-                                      widget.weeklyProgress!.current /
-                                      widget.weeklyProgress!.target,
-                                  backgroundColor: habitColor.withValues(
-                                    alpha: 0.1,
-                                  ),
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    habitColor.withValues(alpha: 0.7),
-                                  ),
-                                  minHeight: 4,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
+                            const Text('🔥', style: TextStyle(fontSize: 13)),
+                            const SizedBox(width: 3),
                             Text(
-                              '${widget.weeklyProgress!.current}/${widget.weeklyProgress!.target}',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: colorScheme.onSurfaceVariant,
+                              '${widget.streak!.current}',
+                              style: const TextStyle(
+                                fontSize: 12,
                                 fontWeight: FontWeight.bold,
+                                color: Colors.deepOrange,
                               ),
                             ),
                           ],
                         ),
-                      ],
+                      ),
                     ],
-                  ),
-                ),
 
-                // ── Streak Badge ──────────────────
-                if (widget.streak != null &&
-                    widget.streak!.current > 0 &&
-                    !isSkipped) ...[
-                  const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.orange.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Text('🔥', style: TextStyle(fontSize: 13)),
-                        const SizedBox(width: 3),
-                        Text(
-                          '${widget.streak!.current}',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.deepOrange,
-                          ),
+                    // ── Status Icon ───────────────────
+                    const SizedBox(width: 8),
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 250),
+                      transitionBuilder: (child, animation) => ScaleTransition(
+                        scale: CurvedAnimation(
+                          parent: animation,
+                          curve: Curves.elasticOut,
                         ),
-                      ],
+                        child: child,
+                      ),
+                      child: _buildStatusIcon(habitColor, colorScheme),
                     ),
-                  ),
-                ],
-
-                // ── Status Icon ───────────────────
-                const SizedBox(width: 8),
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 250),
-                  transitionBuilder: (child, animation) => ScaleTransition(
-                    scale: CurvedAnimation(
-                      parent: animation,
-                      curve: Curves.elasticOut,
-                    ),
-                    child: child,
-                  ),
-                  child: _buildStatusIcon(habitColor, colorScheme),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
         ),
-      ),
+        ConfettiWidget(
+          confettiController: _confettiController,
+          blastDirectionality: BlastDirectionality.explosive,
+          shouldLoop: false,
+          colors: [habitColor, Colors.orange, Colors.pink, Colors.green],
+        ),
+      ],
     );
   }
 

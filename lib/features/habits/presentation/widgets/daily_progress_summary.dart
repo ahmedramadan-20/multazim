@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 class DailyProgressSummary extends StatelessWidget {
   final double progress;
@@ -58,7 +59,7 @@ class DailyProgressSummary extends StatelessWidget {
             ),
           ),
         ],
-      ),
+      ).animate().fadeIn().slideY(begin: 0.1, end: 0),
     );
   }
 }

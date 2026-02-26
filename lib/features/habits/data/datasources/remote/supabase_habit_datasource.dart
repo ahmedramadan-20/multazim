@@ -31,35 +31,42 @@ class SupabaseHabitDataSource implements HabitRemoteDataSource {
 
   @override
   Future<void> syncHabit(HabitModel habit) async {
+    await syncHabitsBatch([habit]);
+  }
+
+  @override
+  Future<void> syncHabitsBatch(List<HabitModel> habits) async {
+    if (habits.isEmpty) return;
     try {
       final userId = await getCurrentUserId();
+      final updatedAt = DateTime.now().toUtc().toIso8601String();
 
-      // Convert model to Supabase format
-      final data = {
-        'id': habit.id,
-        'user_id': userId,
-        'name': habit.name,
-        'icon': habit.icon,
-        'color': habit.color,
-        'category': habit.categoryName,
-        'schedule_type': habit.scheduleType,
-        'schedule_data': habit.scheduleJson,
-        'goal_type': habit.goalType,
-        'goal_data': habit.goalJson,
-        'strictness': habit.strictnessName,
-        'difficulty': habit.difficulty,
-        'start_date': habit.startDate.toIso8601String(),
-        'end_date': habit.endDate?.toIso8601String(),
-        'is_active': habit.isActive,
-        'created_at': habit.createdAt.toIso8601String(),
-        'updated_at': DateTime.now().toUtc().toIso8601String(),
-        'version': habit.version, // For conflict resolution
-      };
+      final dataList = habits.map((habit) {
+        return {
+          'id': habit.id,
+          'user_id': userId,
+          'name': habit.name,
+          'icon': habit.icon,
+          'color': habit.color,
+          'category': habit.categoryName,
+          'schedule_type': habit.scheduleType,
+          'schedule_data': habit.scheduleJson,
+          'goal_type': habit.goalType,
+          'goal_data': habit.goalJson,
+          'strictness': habit.strictnessName,
+          'difficulty': habit.difficulty,
+          'start_date': habit.startDate.toIso8601String(),
+          'end_date': habit.endDate?.toIso8601String(),
+          'is_active': habit.isActive,
+          'created_at': habit.createdAt.toIso8601String(),
+          'updated_at': updatedAt,
+          'version': habit.version,
+        };
+      }).toList();
 
-      // Upsert (insert or update)
-      await _client.from('habits').upsert(data);
+      await _client.from('habits').upsert(dataList);
     } catch (e) {
-      throw RemoteException('Failed to sync habit: $e');
+      throw RemoteException('Failed to sync habits batch: $e');
     }
   }
 
@@ -101,24 +108,32 @@ class SupabaseHabitDataSource implements HabitRemoteDataSource {
 
   @override
   Future<void> syncEvent(HabitEventModel event) async {
+    await syncEventsBatch([event]);
+  }
+
+  @override
+  Future<void> syncEventsBatch(List<HabitEventModel> events) async {
+    if (events.isEmpty) return;
     try {
       final userId = await getCurrentUserId();
 
-      final data = {
-        'id': event.id,
-        'user_id': userId,
-        'habit_id': event.habitId,
-        'date': event.date.toIso8601String().split('T')[0], // DATE only
-        'status': event.statusName,
-        'count_value': event.countValue,
-        'note': event.note,
-        'fail_reason': event.failReason,
-        'created_at': event.createdAt.toIso8601String(),
-      };
+      final dataList = events.map((event) {
+        return {
+          'id': event.id,
+          'user_id': userId,
+          'habit_id': event.habitId,
+          'date': event.date.toIso8601String().split('T')[0],
+          'status': event.statusName,
+          'count_value': event.countValue,
+          'note': event.note,
+          'fail_reason': event.failReason,
+          'created_at': event.createdAt.toIso8601String(),
+        };
+      }).toList();
 
-      await _client.from('habit_events').upsert(data);
+      await _client.from('habit_events').upsert(dataList);
     } catch (e) {
-      throw RemoteException('Failed to sync event: $e');
+      throw RemoteException('Failed to sync events batch: $e');
     }
   }
 
@@ -163,22 +178,30 @@ class SupabaseHabitDataSource implements HabitRemoteDataSource {
 
   @override
   Future<void> syncMilestone(MilestoneModel milestone) async {
+    await syncMilestonesBatch([milestone]);
+  }
+
+  @override
+  Future<void> syncMilestonesBatch(List<MilestoneModel> milestones) async {
+    if (milestones.isEmpty) return;
     try {
       final userId = await getCurrentUserId();
 
-      final data = {
-        'id': milestone.id,
-        'user_id': userId,
-        'habit_id': milestone.habitId,
-        'type': milestone.type,
-        'achieved_at': milestone.achievedAt.toIso8601String(),
-        'streak_value': milestone.streakValue,
-        'created_at': milestone.createdAt.toIso8601String(),
-      };
+      final dataList = milestones.map((milestone) {
+        return {
+          'id': milestone.id,
+          'user_id': userId,
+          'habit_id': milestone.habitId,
+          'type': milestone.type,
+          'achieved_at': milestone.achievedAt.toIso8601String(),
+          'streak_value': milestone.streakValue,
+          'created_at': milestone.createdAt.toIso8601String(),
+        };
+      }).toList();
 
-      await _client.from('milestones').upsert(data);
+      await _client.from('milestones').upsert(dataList);
     } catch (e) {
-      throw RemoteException('Failed to sync milestone: $e');
+      throw RemoteException('Failed to sync milestones batch: $e');
     }
   }
 
@@ -208,21 +231,29 @@ class SupabaseHabitDataSource implements HabitRemoteDataSource {
 
   @override
   Future<void> syncStreakRepair(StreakRepairModel repair) async {
+    await syncStreakRepairsBatch([repair]);
+  }
+
+  @override
+  Future<void> syncStreakRepairsBatch(List<StreakRepairModel> repairs) async {
+    if (repairs.isEmpty) return;
     try {
       final userId = await getCurrentUserId();
 
-      final data = {
-        'id': repair.id,
-        'user_id': userId,
-        'habit_id': repair.habitId,
-        'date': repair.date.toIso8601String().split('T')[0],
-        'reason': repair.reason,
-        'created_at': repair.createdAt.toIso8601String(),
-      };
+      final dataList = repairs.map((repair) {
+        return {
+          'id': repair.id,
+          'user_id': userId,
+          'habit_id': repair.habitId,
+          'date': repair.date.toIso8601String().split('T')[0],
+          'reason': repair.reason,
+          'created_at': repair.createdAt.toIso8601String(),
+        };
+      }).toList();
 
-      await _client.from('streak_repairs').upsert(data);
+      await _client.from('streak_repairs').upsert(dataList);
     } catch (e) {
-      throw RemoteException('Failed to sync streak repair: $e');
+      throw RemoteException('Failed to sync streak repairs batch: $e');
     }
   }
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../domain/entities/habit.dart';
 import '../../domain/entities/habit_event.dart';
@@ -131,11 +132,19 @@ class _TodayPageState extends State<TodayPage> {
                             itemBuilder: (context, index) {
                               final habit = state.habits[index];
                               return DismissibleHabitCard(
-                                habit: habit,
-                                todayEvent: state.todayEvents[habit.id],
-                                streak: state.streaks[habit.id],
-                                weeklyProgress: state.weeklyProgress[habit.id],
-                              );
+                                    habit: habit,
+                                    todayEvent: state.todayEvents[habit.id],
+                                    streak: state.streaks[habit.id],
+                                    weeklyProgress:
+                                        state.weeklyProgress[habit.id],
+                                  )
+                                  .animate(delay: (index * 100).ms)
+                                  .fadeIn(duration: 400.ms)
+                                  .slideY(
+                                    begin: 0.2,
+                                    end: 0,
+                                    curve: Curves.easeOut,
+                                  );
                             },
                           ),
                         ),

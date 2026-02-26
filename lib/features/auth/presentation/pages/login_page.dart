@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../core/router/app_routes.dart';
 import '../cubit/auth_cubit.dart';
 import '../cubit/auth_state.dart';
@@ -67,28 +68,44 @@ class _LoginPageState extends State<LoginPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const LoginHeader(),
+                    const LoginHeader()
+                        .animate()
+                        .fadeIn(duration: 600.ms)
+                        .slideY(begin: -0.2, end: 0),
                     const SizedBox(height: 48),
 
-                    EmailField(controller: _emailController),
+                    EmailField(controller: _emailController)
+                        .animate(delay: 200.ms)
+                        .fadeIn(duration: 400.ms)
+                        .slideX(begin: -0.1, end: 0),
                     const SizedBox(height: 16),
 
                     PasswordField(
-                      controller: _passwordController,
-                      obscurePassword: _obscurePassword,
-                      onVisibilityChanged: () =>
-                          setState(() => _obscurePassword = !_obscurePassword),
-                    ),
+                          controller: _passwordController,
+                          obscurePassword: _obscurePassword,
+                          onVisibilityChanged: () => setState(
+                            () => _obscurePassword = !_obscurePassword,
+                          ),
+                        )
+                        .animate(delay: 400.ms)
+                        .fadeIn(duration: 400.ms)
+                        .slideX(begin: -0.1, end: 0),
                     const SizedBox(height: 32),
 
-                    AuthSubmitButton(onSubmit: _submit, label: 'تسجيل الدخول'),
+                    AuthSubmitButton(onSubmit: _submit, label: 'تسجيل الدخول')
+                        .animate(delay: 600.ms)
+                        .fadeIn(duration: 400.ms)
+                        .scale(
+                          begin: const Offset(0.9, 0.9),
+                          end: const Offset(1, 1),
+                        ),
                     const SizedBox(height: 16),
 
                     AuthNavigationRow(
                       text: 'ليس لديك حساب؟',
                       buttonText: 'إنشاء حساب',
                       onPressed: () => context.go(AppRoutes.signUp),
-                    ),
+                    ).animate(delay: 800.ms).fadeIn(),
                   ],
                 ),
               ),

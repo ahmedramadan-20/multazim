@@ -65,7 +65,7 @@
     },
     {
       "id": "2:5633362972816185087",
-      "lastPropertyId": "17:7691399056863607593",
+      "lastPropertyId": "18:4488269995756307262",
       "name": "HabitModel",
       "properties": [
         {
@@ -154,6 +154,11 @@
         {
           "id": "17:7691399056863607593",
           "name": "version",
+          "type": 6
+        },
+        {
+          "id": "18:4488269995756307262",
+          "name": "reminderMinutes",
           "type": 6
         }
       ],

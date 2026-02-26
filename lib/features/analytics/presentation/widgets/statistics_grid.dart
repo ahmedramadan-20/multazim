@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:multazim/features/analytics/domain/entities/daily_summary.dart';
 
 class StatisticsGrid extends StatefulWidget {
@@ -144,29 +145,29 @@ class _StatisticsGridState extends State<StatisticsGrid> {
           childAspectRatio: 1.5,
           children: [
             _StatCard(
-              title: 'معدل الإنجاز',
+              title: 'الإنجاز',
               value: '${(_avgRate * 100).toStringAsFixed(1)}%',
               icon: Icons.pie_chart,
               color: Colors.blue,
-            ),
+            ).animate().fadeIn(delay: 0.ms).slideX(begin: -0.1, end: 0),
             _StatCard(
               title: 'أيام مثالية',
               value: '$_totalPerfectDays',
               icon: Icons.star,
               color: Colors.amber,
-            ),
+            ).animate().fadeIn(delay: 100.ms).slideX(begin: 0.1, end: 0),
             _StatCard(
-              title: 'أفضل يوم',
+              title: 'الأفضل',
               value: _bestDayStr,
               icon: Icons.calendar_today,
               color: Colors.green,
-            ),
+            ).animate().fadeIn(delay: 200.ms).slideX(begin: -0.1, end: 0),
             _StatCard(
               title: 'تتابع مثالي',
               value: '$_currentPerfectStreak',
               icon: Icons.local_fire_department,
               color: Colors.orange,
-            ),
+            ).animate().fadeIn(delay: 300.ms).slideX(begin: 0.1, end: 0),
           ],
         ),
         const SizedBox(height: 8),

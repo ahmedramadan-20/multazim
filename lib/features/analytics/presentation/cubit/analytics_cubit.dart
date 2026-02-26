@@ -1,13 +1,20 @@
+import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:multazim/features/habits/domain/usecases/get_all_milestones_usecase.dart';
+import 'package:rxdart/rxdart.dart';
+import 'package:multazim/features/habits/domain/usecases/watch_habits_usecase.dart';
+import 'package:multazim/features/habits/domain/usecases/watch_all_events_usecase.dart';
+import 'package:multazim/features/habits/domain/usecases/watch_all_milestones_usecase.dart';
+import 'package:multazim/features/habits/domain/usecases/watch_all_streak_repairs_usecase.dart';
 import '../../../analytics/domain/entities/insight.dart';
 import '../../../analytics/domain/entities/habit_analytics_snapshot.dart';
 import '../../../analytics/domain/services/insight_generator.dart';
-import '../../../analytics/domain/usecases/get_habits_for_analytics_usecase.dart';
-import '../../../analytics/domain/usecases/get_habit_events_for_analytics_usecase.dart';
-import '../../../analytics/domain/usecases/get_habit_repairs_for_analytics_usecase.dart';
 import '../../../analytics/domain/usecases/get_habit_by_id_for_analytics_usecase.dart';
+import '../../../analytics/domain/usecases/get_habit_events_for_analytics_usecase.dart';
 import '../../../analytics/domain/usecases/get_habit_milestones_for_analytics_usecase.dart';
+import '../../../analytics/domain/usecases/get_habit_repairs_for_analytics_usecase.dart';
+import '../../../habits/domain/entities/habit.dart';
+import '../../../habits/domain/entities/habit_event.dart';
+import '../../../habits/domain/entities/streak_repair.dart';
 import '../../../habits/domain/services/streak_service.dart';
 import '../../../habits/domain/entities/milestone.dart';
 import '../../../analytics/domain/repositories/analytics_repository.dart';
@@ -15,55 +22,109 @@ import 'analytics_state.dart';
 
 class AnalyticsCubit extends Cubit<AnalyticsState> {
   final AnalyticsRepository _repository;
-  final GetHabitsForAnalyticsUseCase _getHabits;
+  final WatchHabitsUseCase _watchHabits;
+  final WatchAllEventsUseCase _watchAllEvents;
+  final WatchAllStreakRepairsUseCase _watchAllStreakRepairs;
+  final WatchAllMilestonesUseCase _watchAllMilestones;
+
+  // Keep these for loadHabitDetails (specific habit queries)
+  final GetHabitByIdForAnalyticsUseCase _getHabitById;
   final GetHabitEventsForAnalyticsUseCase _getHabitEvents;
   final GetHabitRepairsForAnalyticsUseCase _getHabitRepairs;
-  final GetHabitByIdForAnalyticsUseCase _getHabitById;
   final GetHabitMilestonesForAnalyticsUseCase _getHabitMilestones;
-  final GetAllMilestonesUseCase _getAllMilestones;
+
   final StreakService _streakService;
   final InsightGenerator _insightGenerator = InsightGenerator();
 
+  StreamSubscription? _dataSubscription;
+  DateTime? _startDate;
+  DateTime? _endDate;
+
   AnalyticsCubit({
     required AnalyticsRepository repository,
-    required GetHabitsForAnalyticsUseCase getHabits,
+    required WatchHabitsUseCase watchHabits,
+    required WatchAllEventsUseCase watchAllEvents,
+    required WatchAllStreakRepairsUseCase watchAllStreakRepairs,
+    required WatchAllMilestonesUseCase watchAllMilestones,
+    required GetHabitByIdForAnalyticsUseCase getHabitById,
     required GetHabitEventsForAnalyticsUseCase getHabitEvents,
     required GetHabitRepairsForAnalyticsUseCase getHabitRepairs,
-    required GetHabitByIdForAnalyticsUseCase getHabitById,
     required GetHabitMilestonesForAnalyticsUseCase getHabitMilestones,
-    required GetAllMilestonesUseCase getAllMilestones,
     required StreakService streakService,
   }) : _repository = repository,
-       _getHabits = getHabits,
+       _watchHabits = watchHabits,
+       _watchAllEvents = watchAllEvents,
+       _watchAllStreakRepairs = watchAllStreakRepairs,
+       _watchAllMilestones = watchAllMilestones,
+       _getHabitById = getHabitById,
        _getHabitEvents = getHabitEvents,
        _getHabitRepairs = getHabitRepairs,
-       _getHabitById = getHabitById,
        _getHabitMilestones = getHabitMilestones,
-       _getAllMilestones = getAllMilestones,
        _streakService = streakService,
-       super(AnalyticsInitial());
+       super(AnalyticsInitial()) {
+    _initReactivity();
+  }
 
-  Future<void> loadAnalytics([DateTime? start, DateTime? end]) async {
-    emit(AnalyticsLoading());
+  void _initReactivity() {
+    _dataSubscription =
+        Rx.combineLatest4(
+          _watchHabits(),
+          _watchAllEvents(),
+          _watchAllStreakRepairs(),
+          _watchAllMilestones(),
+          (habits, events, repairs, milestones) =>
+              (habits, events, repairs, milestones),
+        ).listen((data) {
+          _updateState(data.$1, data.$2, data.$3, data.$4);
+        });
+  }
+
+  @override
+  Future<void> close() {
+    _dataSubscription?.cancel();
+    return super.close();
+  }
+
+  Future<void> _updateState(
+    List<Habit> habits,
+    List<HabitEvent> allEvents,
+    List<StreakRepair> allRepairs,
+    List<Milestone> allMilestones,
+  ) async {
     try {
-      final endDate = end ?? DateTime.now();
-      final startDate = start ?? endDate.subtract(const Duration(days: 30));
+      final now = DateTime.now();
+      final endDate = _endDate ?? now;
+      final startDate =
+          _startDate ?? endDate.subtract(const Duration(days: 30));
 
+      // 1. Summaries (Still from repo for complex date logic, but repo could be optimized)
+      // Note: Repository still uses async queries, but we only call it ONCE here instead of N times.
       final summaries = await _repository.getSummaries(startDate, endDate);
-      final habits = await _getHabits(); // ← NOW USES USE CASE
+
+      // 2. Snapshots
       final snapshots = <HabitAnalyticsSnapshot>[];
+      final eventsByHabit = <String, List<HabitEvent>>{};
+      for (final e in allEvents) {
+        (eventsByHabit[e.habitId] ??= []).add(e);
+      }
+
+      final repairsByHabit = <String, List<StreakRepair>>{};
+      for (final r in allRepairs) {
+        (repairsByHabit[r.habitId] ??= []).add(r);
+      }
 
       for (final habit in habits.where((h) => h.isActive)) {
-        final events = await _getHabitEvents(habit.id); // ← USE CASE
-        final repairs = await _getHabitRepairs(habit.id); // ← USE CASE
+        final events = eventsByHabit[habit.id] ?? [];
+        final repairs = repairsByHabit[habit.id] ?? [];
         final streak = _streakService.calculateStreak(habit, events, repairs);
-        final dowStats = await _repository.getDayOfWeekStats(habit.id);
+
+        // Day of week stats - repository still does independent query,
+        // but we can calculate it in-memory now!
+        final dowStats = _calculateDowStats(events);
 
         final last30DaysEvents = events
             .where(
-              (e) => e.date.isAfter(
-                DateTime.now().subtract(const Duration(days: 30)),
-              ),
+              (e) => e.date.isAfter(now.subtract(const Duration(days: 30))),
             )
             .toList();
 
@@ -71,7 +132,7 @@ class AnalyticsCubit extends Cubit<AnalyticsState> {
         final completionRate = attempts == 0
             ? 0.0
             : last30DaysEvents
-                      .where((e) => e.status.name == 'completed')
+                      .where((e) => e.status == HabitEventStatus.completed)
                       .length /
                   attempts;
 
@@ -91,9 +152,6 @@ class AnalyticsCubit extends Cubit<AnalyticsState> {
         habitStats: snapshots,
       );
 
-      // Also need getAllMilestones use case — add it if it doesn't exist
-      final allMilestones = await _getAllMilestones();
-
       emit(
         AnalyticsLoaded(
           summaries: summaries,
@@ -104,6 +162,33 @@ class AnalyticsCubit extends Cubit<AnalyticsState> {
     } catch (e) {
       emit(AnalyticsError(e.toString()));
     }
+  }
+
+  Map<int, double> _calculateDowStats(List<HabitEvent> events) {
+    final completionsByDay = <int, int>{for (int i = 1; i <= 7; i++) i: 0};
+    final totalEventsByDay = <int, int>{for (int i = 1; i <= 7; i++) i: 0};
+
+    for (var event in events) {
+      final day = event.date.weekday;
+      totalEventsByDay[day] = totalEventsByDay[day]! + 1;
+      if (event.status == HabitEventStatus.completed) {
+        completionsByDay[day] = completionsByDay[day]! + 1;
+      }
+    }
+
+    return {
+      for (int i = 1; i <= 7; i++)
+        i: totalEventsByDay[i] == 0
+            ? 0.0
+            : completionsByDay[i]! / totalEventsByDay[i]!,
+    };
+  }
+
+  Future<void> loadAnalytics([DateTime? start, DateTime? end]) async {
+    _startDate = start;
+    _endDate = end;
+    // Manual trigger - doesn't need to fetch anything, just relies on streams
+    // But we might want to emit loading if we're forcing a refresh
   }
 
   Future<void> loadHabitDetails(String habitId) async {
@@ -131,7 +216,7 @@ class AnalyticsCubit extends Cubit<AnalyticsState> {
         final completionRate = last30DaysEvents.isEmpty
             ? 0.0
             : last30DaysEvents
-                      .where((e) => e.status.name == 'completed')
+                      .where((e) => e.status == HabitEventStatus.completed)
                       .length /
                   last30DaysEvents.length;
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
 
 class TodayHeader extends StatelessWidget {
@@ -42,11 +43,11 @@ class TodayHeader extends StatelessWidget {
                   ),
                 ),
               ],
-            ),
+            ).animate().fadeIn().slideX(begin: -0.1, end: 0),
             IconButton(
               icon: const Icon(Icons.calendar_month_outlined),
               onPressed: () {},
-            ),
+            ).animate().fadeIn().scale(),
           ],
         ),
       ),

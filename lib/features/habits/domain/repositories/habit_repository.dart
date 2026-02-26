@@ -5,12 +5,15 @@ import '../entities/milestone.dart';
 
 abstract class HabitRepository {
   Future<List<Habit>> getHabits();
+  Stream<List<Habit>> watchHabits();
   Future<Habit?> getHabitById(String id);
   Future<void> createHabit(Habit habit);
   Future<void> deleteHabit(String id);
   Future<void> updateHabit(Habit habit);
 
   Future<void> saveEvent(HabitEvent event);
+  Stream<List<HabitEvent>> watchEventsForDate(DateTime date);
+  Stream<List<HabitEvent>> watchAllEvents();
   Future<List<HabitEvent>> getEventsForHabit(String habitId);
   Future<List<HabitEvent>> getEventsForDate(DateTime date);
   Future<HabitEvent?> getTodayEvent(String habitId);
@@ -22,6 +25,8 @@ abstract class HabitRepository {
   Future<void> saveMilestone(Milestone milestone);
   Future<List<Milestone>> getMilestones(String habitId);
   Future<List<Milestone>> getAllMilestones();
+  Stream<List<Milestone>> watchAllMilestones();
   Future<List<HabitEvent>> getAllEvents();
   Future<List<StreakRepair>> getAllStreakRepairs();
+  Stream<List<StreakRepair>> watchAllStreakRepairs();
 }

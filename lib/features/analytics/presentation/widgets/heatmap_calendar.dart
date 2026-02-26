@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
 
 class HeatmapCalendar extends StatelessWidget {
@@ -96,7 +97,10 @@ class HeatmapCalendar extends StatelessWidget {
                   return const SizedBox.shrink();
                 }
                 final value = data[date] ?? 0.0;
-                return _HeatmapCell(date: date, value: value);
+                return _HeatmapCell(date: date, value: value)
+                    .animate(delay: (index * 5).ms)
+                    .fadeIn(duration: 300.ms)
+                    .scale(begin: const Offset(0.5, 0.5));
               },
             ),
           ),

@@ -35,6 +35,13 @@ class HabitRepositoryImpl implements HabitRepository {
   }
 
   @override
+  Stream<List<Habit>> watchHabits() {
+    return localDataSource.watchHabits().map((models) {
+      return models.map((m) => m.toEntity()).toList();
+    });
+  }
+
+  @override
   Future<Habit?> getHabitById(String id) async {
     try {
       final model = await localDataSource.getHabitById(id);
@@ -50,8 +57,8 @@ class HabitRepositoryImpl implements HabitRepository {
       final model = HabitModel.fromEntity(habit);
       await localDataSource.saveHabit(model);
 
-      // Phase 2: Remote Sync
-      await _syncHabitRemote(model);
+      // Phase 2: Remote Sync (Background)
+      _syncHabitRemote(model);
     } on LocalException catch (e) {
       throw LocalFailure(e.message);
     }
@@ -63,8 +70,8 @@ class HabitRepositoryImpl implements HabitRepository {
       final model = HabitModel.fromEntity(habit);
       await localDataSource.saveHabit(model);
 
-      // Phase 2: Remote Sync
-      await _syncHabitRemote(model);
+      // Phase 2: Remote Sync (Background)
+      _syncHabitRemote(model);
     } on LocalException catch (e) {
       throw LocalFailure(e.message);
     }
@@ -75,8 +82,8 @@ class HabitRepositoryImpl implements HabitRepository {
     try {
       await localDataSource.deleteHabit(id);
 
-      // Phase 2: Remote Sync
-      await _deleteHabitRemote(id);
+      // Phase 2: Remote Sync (Background)
+      _deleteHabitRemote(id);
     } on LocalException catch (e) {
       throw LocalFailure(e.message);
     }
@@ -88,11 +95,25 @@ class HabitRepositoryImpl implements HabitRepository {
       final model = HabitEventModel.fromEntity(event);
       await localDataSource.saveEvent(model);
 
-      // Phase 2: Remote Sync
-      await _syncEventRemote(model);
+      // Phase 2: Remote Sync (Background)
+      _syncEventRemote(model);
     } on LocalException catch (e) {
       throw LocalFailure(e.message);
     }
+  }
+
+  @override
+  Stream<List<HabitEvent>> watchEventsForDate(DateTime date) {
+    return localDataSource.watchEventsForDate(date).map((models) {
+      return models.map((m) => m.toEntity()).toList();
+    });
+  }
+
+  @override
+  Stream<List<HabitEvent>> watchAllEvents() {
+    return localDataSource.watchAllEvents().map((models) {
+      return models.map((m) => m.toEntity()).toList();
+    });
   }
 
   @override
@@ -141,8 +162,8 @@ class HabitRepositoryImpl implements HabitRepository {
       final model = StreakRepairModel.fromEntity(repair);
       await localDataSource.saveStreakRepair(model);
 
-      // Phase 2: Remote Sync
-      await _syncStreakRepairRemote(model);
+      // Phase 2: Remote Sync (Background)
+      _syncStreakRepairRemote(model);
     } on LocalException catch (e) {
       throw LocalFailure(e.message);
     }
@@ -164,8 +185,8 @@ class HabitRepositoryImpl implements HabitRepository {
       final model = MilestoneModel.fromEntity(milestone);
       await localDataSource.saveMilestone(model);
 
-      // Phase 2: Remote Sync
-      await _syncMilestoneRemote(model);
+      // Phase 2: Remote Sync (Background)
+      _syncMilestoneRemote(model);
     } on LocalException catch (e) {
       throw LocalFailure(e.message);
     }
@@ -192,6 +213,13 @@ class HabitRepositoryImpl implements HabitRepository {
   }
 
   @override
+  Stream<List<Milestone>> watchAllMilestones() {
+    return localDataSource.watchAllMilestones().map((models) {
+      return models.map((m) => m.toEntity()).toList();
+    });
+  }
+
+  @override
   Future<List<HabitEvent>> getAllEvents() async {
     try {
       final models = await localDataSource.getAllEvents();
@@ -209,6 +237,13 @@ class HabitRepositoryImpl implements HabitRepository {
     } on LocalException catch (e) {
       throw LocalFailure(e.message);
     }
+  }
+
+  @override
+  Stream<List<StreakRepair>> watchAllStreakRepairs() {
+    return localDataSource.watchAllStreakRepairs().map((models) {
+      return models.map((m) => m.toEntity()).toList();
+    });
   }
 
   // ─────────────────────────────────────────────────

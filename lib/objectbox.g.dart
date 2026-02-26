@@ -93,7 +93,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
     id: const obx_int.IdUid(2, 5633362972816185087),
     name: 'HabitModel',
-    lastPropertyId: const obx_int.IdUid(17, 7691399056863607593),
+    lastPropertyId: const obx_int.IdUid(18, 4488269995756307262),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
@@ -196,6 +196,12 @@ final _entities = <obx_int.ModelEntity>[
       obx_int.ModelProperty(
         id: const obx_int.IdUid(17, 7691399056863607593),
         name: 'version',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(18, 4488269995756307262),
+        name: 'reminderMinutes',
         type: 6,
         flags: 0,
       ),
@@ -481,7 +487,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final strictnessNameOffset = fbb.writeString(object.strictnessName);
         final scheduleTypeOffset = fbb.writeString(object.scheduleType);
         final goalTypeOffset = fbb.writeString(object.goalType);
-        fbb.startTable(18);
+        fbb.startTable(19);
         fbb.addInt64(0, object.dbId);
         fbb.addOffset(1, idOffset);
         fbb.addOffset(2, nameOffset);
@@ -499,6 +505,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
         fbb.addOffset(14, scheduleTypeOffset);
         fbb.addOffset(15, goalTypeOffset);
         fbb.addInt64(16, object.version);
+        fbb.addInt64(17, object.reminderMinutes);
         fbb.finish(fbb.endTable());
         return object.dbId;
       },
@@ -568,6 +575,11 @@ obx_int.ModelDefinition getObjectBoxModel() {
             rootOffset,
             36,
             0,
+          )
+          ..reminderMinutes = const fb.Int64Reader().vTableGetNullable(
+            buffer,
+            rootOffset,
+            38,
           );
 
         return object;
@@ -854,6 +866,11 @@ class HabitModel_ {
   /// See [HabitModel.version].
   static final version = obx.QueryIntegerProperty<HabitModel>(
     _entities[1].properties[16],
+  );
+
+  /// See [HabitModel.reminderMinutes].
+  static final reminderMinutes = obx.QueryIntegerProperty<HabitModel>(
+    _entities[1].properties[17],
   );
 }
 

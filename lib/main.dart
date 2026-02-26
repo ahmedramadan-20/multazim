@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/constants/env.dart';
 import 'core/di/injection_container.dart';
 import 'core/router/app_router.dart';
+import 'core/services/notification_service.dart';
 import 'core/theme/app_theme.dart';
 import 'core/constants/app_constants.dart';
 import 'package:multazim/core/services/connectivity_service.dart';
@@ -28,6 +29,7 @@ Future<void> main() async {
 
   // 🚀 Start background sync listener
   sl<ConnectivityService>().startListening();
+  await NotificationService.instance.init();
 
   runApp(const MultazimApp());
 }
