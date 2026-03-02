@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'feature_row.dart';
 import 'welcome_actions.dart';
+import '../../../../core/theme/app_colors.dart';
 
 class WelcomeView extends StatelessWidget {
   const WelcomeView({super.key});
@@ -63,7 +64,7 @@ class WelcomeView extends StatelessWidget {
               // ── Feature highlights ──────────────
               const FeatureRow(
                 icon: Icons.offline_bolt_rounded,
-                color: Colors.green,
+                color: AppColors.success,
                 title: 'بدون إنترنت',
                 subtitle: 'كل بياناتك محفوظة محلياً',
               ).animate(delay: 500.ms).fadeIn().slideX(begin: 0.1, end: 0),
@@ -77,7 +78,7 @@ class WelcomeView extends StatelessWidget {
               const SizedBox(height: 16),
               const FeatureRow(
                 icon: Icons.bar_chart_rounded,
-                color: Colors.orange,
+                color: AppColors.warning,
                 title: 'تحليلات ذكية',
                 subtitle: 'تتبع تقدمك بدقة',
               ).animate(delay: 700.ms).fadeIn().slideX(begin: 0.1, end: 0),

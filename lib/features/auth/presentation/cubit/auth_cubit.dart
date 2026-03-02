@@ -12,7 +12,6 @@ import '../../domain/repositories/auth_repository.dart';
 import '../../../../core/error/failures.dart';
 import 'auth_state.dart';
 
-/// Key used to persist guest mode choice across app restarts
 const _guestModeKey = 'auth_guest_mode';
 
 class AuthCubit extends Cubit<AuthState> {
@@ -32,11 +31,17 @@ class AuthCubit extends Cubit<AuthState> {
     required this.authRepository,
     required this.syncService,
     required this.localDataSource,
-  }) : super(AuthInitial());
+  }) : super(AuthInitial()) {
+    // Auth initializes itself on construction.
+    // checkAuthStatus is async — router stays on welcome (AuthInitial)
+    // until it completes, then redirects automatically via refreshListenable.
+    checkAuthStatus();
+    listenToAuthChanges(); // single subscription — never call again from outside
+  }
 
   // ─────────────────────────────────────────────────
-  // Called once on app launch
-  // Priority: authenticated user > guest mode > unauthenticated
+  // APP LAUNCH
+  // Priority: authenticated > guest > unauthenticated
   // ─────────────────────────────────────────────────
 
   Future<void> checkAuthStatus() async {
@@ -44,14 +49,12 @@ class AuthCubit extends Cubit<AuthState> {
       final user = await getCurrentUser();
       if (user != null) {
         emit(AuthAuthenticated(user));
-        // Background sync on launch if online
         syncService.fullSync().catchError((e) {
           developer.log('App launch sync failed: $e', name: 'multazim.sync');
         });
         return;
       }
 
-      // Check if user previously chose guest mode
       final isGuest = await _isGuestMode();
       if (isGuest) {
         emit(AuthGuest());
@@ -65,7 +68,7 @@ class AuthCubit extends Cubit<AuthState> {
   }
 
   // ─────────────────────────────────────────────────
-  // Listens to Supabase auth stream
+  // AUTH STREAM — single subscription from constructor
   // ─────────────────────────────────────────────────
 
   void listenToAuthChanges() {
@@ -74,8 +77,6 @@ class AuthCubit extends Cubit<AuthState> {
       if (user != null) {
         emit(AuthAuthenticated(user));
       } else {
-        // Only drop to unauthenticated if not in guest mode
-        // (Supabase stream fires null on app launch for guest users)
         if (state is! AuthGuest) {
           emit(AuthUnauthenticated());
         }
@@ -103,14 +104,12 @@ class AuthCubit extends Cubit<AuthState> {
     emit(AuthLoading());
     try {
       final user = await signIn(email, password);
-      // Clear guest mode flag since user now has an account
       await _saveGuestMode(false);
-      // Migrate guest data to cloud before pulling remote data
       await syncService.fullSync();
       await sl<HabitsCubit>().loadHabits();
       emit(AuthAuthenticated(user));
     } on RemoteFailure catch (e) {
-      emit(AuthError(e.message));
+      emit(AuthError(_translateAuthError(e.message)));
     } catch (e) {
       emit(AuthError('حدث خطأ غير متوقع'));
     }
@@ -125,12 +124,11 @@ class AuthCubit extends Cubit<AuthState> {
     try {
       final user = await signUp(email, password);
       await _saveGuestMode(false);
-      // Migrate guest data to cloud before pulling remote data
       await syncService.fullSync();
       await sl<HabitsCubit>().loadHabits();
       emit(AuthAuthenticated(user));
     } on RemoteFailure catch (e) {
-      emit(AuthError(e.message));
+      emit(AuthError(_translateAuthError(e.message)));
     } catch (e) {
       emit(AuthError('حدث خطأ غير متوقع'));
     }
@@ -143,7 +141,6 @@ class AuthCubit extends Cubit<AuthState> {
   Future<void> signOutUser() async {
     emit(AuthLoading());
     try {
-      // Final attempt to push data before clearing local storage
       await syncService.pushLocalData().catchError((e) {
         developer.log('Logout sync failed: $e', name: 'multazim.sync');
       });
@@ -152,21 +149,59 @@ class AuthCubit extends Cubit<AuthState> {
       await _saveGuestMode(false);
       emit(AuthUnauthenticated());
     } on RemoteFailure catch (e) {
-      emit(AuthError(e.message));
+      emit(AuthError(_translateAuthError(e.message)));
     } catch (e) {
       emit(AuthError('تعذر تسجيل الخروج'));
     }
   }
 
   // ─────────────────────────────────────────────────
+  // ERROR TRANSLATION
+  // ─────────────────────────────────────────────────
+
+  String _translateAuthError(String message) {
+    final lower = message.toLowerCase();
+    if (lower.contains('rate limit') || lower.contains('too many')) {
+      return 'تجاوزت الحد المسموح به، حاول بعد قليل';
+    }
+    if (lower.contains('already registered') ||
+        lower.contains('already exists') ||
+        lower.contains('user already')) {
+      return 'هذا البريد الإلكتروني مسجل مسبقاً';
+    }
+    if (lower.contains('invalid login') ||
+        lower.contains('invalid credentials') ||
+        lower.contains('wrong password') ||
+        lower.contains('invalid password')) {
+      return 'البريد الإلكتروني أو كلمة المرور غير صحيحة';
+    }
+    if (lower.contains('email not confirmed') ||
+        lower.contains('confirm your email')) {
+      return 'يرجى تأكيد بريدك الإلكتروني أولاً';
+    }
+    if (lower.contains('invalid email') || lower.contains('valid email')) {
+      return 'صيغة البريد الإلكتروني غير صحيحة';
+    }
+    if (lower.contains('weak password') || lower.contains('password should')) {
+      return 'كلمة المرور ضعيفة — استخدم 6 أحرف أو أكثر';
+    }
+    if (lower.contains('network') ||
+        lower.contains('connection') ||
+        lower.contains('timeout')) {
+      return 'تعذر الاتصال، تحقق من الإنترنت';
+    }
+    if (lower.contains('user not found') || lower.contains('no user')) {
+      return 'لا يوجد حساب بهذا البريد الإلكتروني';
+    }
+    return 'حدث خطأ، حاول مرة أخرى';
+  }
+
+  // ─────────────────────────────────────────────────
   // GUEST MODE PERSISTENCE
-  // Uses shared_preferences to remember choice across restarts
   // ─────────────────────────────────────────────────
 
   Future<bool> _isGuestMode() async {
     try {
-      // Use ObjectBox metadata or shared_preferences
-      // Using simple file-based flag via localDataSource metadata
       return await localDataSource.getMetadata(_guestModeKey) == 'true';
     } catch (_) {
       return false;
@@ -176,8 +211,6 @@ class AuthCubit extends Cubit<AuthState> {
   Future<void> _saveGuestMode(bool value) async {
     try {
       await localDataSource.saveMetadata(_guestModeKey, value.toString());
-    } catch (_) {
-      // Non-critical — guest mode just won't persist across restarts
-    }
+    } catch (_) {}
   }
 }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:multazim/features/auth/presentation/cubit/auth_cubit.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/constants/env.dart';
 import 'core/di/injection_container.dart';
@@ -13,23 +13,24 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
   await dotenv.load(fileName: '.env');
   await Supabase.initialize(url: Env.supabaseUrl, anonKey: Env.supabaseAnonKey);
-
   await initializeDateFormatting('ar', null);
-
   await initDependencies();
 
-  // ✅ Check if a session already exists (e.g. user was logged in before)
-  // then start listening for future auth changes (token expiry, remote sign-out)
-  await sl<AuthCubit>().checkAuthStatus();
-  sl<AuthCubit>().listenToAuthChanges();
+  // Auth is handled entirely in AuthCubit constructor:
+  // - checkAuthStatus() runs automatically
+  // - listenToAuthChanges() subscribes automatically
+  // Do NOT call them here — that would cause double subscriptions.
 
-  // 🚀 Start background sync listener
   sl<ConnectivityService>().startListening();
   await NotificationService.instance.init();
+
+  // Remove splash BEFORE runApp so it dismisses cleanly
+  FlutterNativeSplash.remove();
 
   runApp(const MultazimApp());
 }
@@ -40,25 +41,18 @@ class MultazimApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      // go_router takes over navigation completely
       routerConfig: appRouter,
-
       title: AppConstants.appName,
-
-      // Light theme — dark theme ready for Phase 6
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
-      themeMode: ThemeMode.light,
-      localizationsDelegates: [
+      themeMode: ThemeMode.system,
+      localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-
-      // Arabic support
       locale: const Locale('ar'),
       supportedLocales: const [Locale('ar'), Locale('en')],
-
       debugShowCheckedModeBanner: false,
     );
   }

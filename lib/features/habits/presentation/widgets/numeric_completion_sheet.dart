@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../domain/entities/habit.dart';
 
 class NumericCompletionSheet extends StatefulWidget {
@@ -76,7 +77,7 @@ class _NumericCompletionSheetState extends State<NumericCompletionSheet> {
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: Colors.grey[300],
+              color: colorScheme.outlineVariant,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -104,7 +105,7 @@ class _NumericCompletionSheetState extends State<NumericCompletionSheet> {
               minHeight: 12,
               backgroundColor: habitColor.withValues(alpha: 0.15),
               valueColor: AlwaysStoppedAnimation<Color>(
-                _goalReached ? Colors.green : habitColor,
+                _goalReached ? AppColors.success : habitColor,
               ),
             ),
           ),
@@ -116,7 +117,7 @@ class _NumericCompletionSheetState extends State<NumericCompletionSheet> {
                 '$_currentValue / $_targetValue $unit',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  color: _goalReached ? Colors.green : habitColor,
+                  color: _goalReached ? AppColors.success : habitColor,
                 ),
               ),
               Text(
@@ -196,7 +197,7 @@ class _NumericCompletionSheetState extends State<NumericCompletionSheet> {
                 : null,
             style: FilledButton.styleFrom(
               minimumSize: const Size.fromHeight(52),
-              backgroundColor: _goalReached ? Colors.green : habitColor,
+              backgroundColor: _goalReached ? AppColors.success : habitColor,
             ),
             icon: Icon(_goalReached ? Icons.check_circle : Icons.save_outlined),
             label: Text(
@@ -235,7 +236,7 @@ class _NumericCompletionSheetState extends State<NumericCompletionSheet> {
       if (hex.startsWith('0x')) hex = hex.substring(2);
       return Color(int.parse(hex, radix: 16));
     } catch (_) {
-      return Colors.blue;
+      return Theme.of(context).colorScheme.primary;
     }
   }
 }

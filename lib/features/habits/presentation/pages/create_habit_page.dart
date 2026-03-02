@@ -280,7 +280,7 @@ class _CreateHabitPageState extends State<CreateHabitPage> {
                           color: c,
                           shape: BoxShape.circle,
                           border: isSelected
-                              ? Border.all(color: Colors.black, width: 3)
+                              ? Border.all(color: colorScheme.outline, width: 3)
                               : Border.all(color: Colors.transparent, width: 3),
                           boxShadow: isSelected
                               ? [
@@ -590,7 +590,9 @@ class _CreateHabitPageState extends State<CreateHabitPage> {
                     decoration: BoxDecoration(
                       color: isSelected
                           ? _color.withValues(alpha: 0.2)
-                          : Colors.grey[100],
+                          : Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainerHighest,
                       borderRadius: BorderRadius.circular(12),
                       border: isSelected
                           ? Border.all(color: _color, width: 2)

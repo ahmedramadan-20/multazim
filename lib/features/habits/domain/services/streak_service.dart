@@ -20,6 +20,7 @@ class StreakService {
   ) {
     // Convert repairs into "synthetic" completion events to bridge gaps
     final syntheticEvents = repairs
+        .where((r) => r.habitId == habit.id)
         .map(
           (r) => HabitEvent(
             id: r.id,

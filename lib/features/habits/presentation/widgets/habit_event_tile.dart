@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../domain/entities/habit_event.dart';
+import '../../../../core/theme/app_colors.dart';
 
 class HabitEventTile extends StatelessWidget {
   final HabitEvent event;
@@ -26,15 +27,15 @@ class HabitEventTile extends StatelessWidget {
         statusIcon = Icons.check_circle;
         statusLabel = 'مكتمل';
       case HabitEventStatus.skipped:
-        statusColor = Colors.orange;
+        statusColor = AppColors.warning;
         statusIcon = Icons.skip_next;
         statusLabel = 'متخطى';
       case HabitEventStatus.failed:
-        statusColor = Colors.red;
+        statusColor = colorScheme.error;
         statusIcon = Icons.cancel;
         statusLabel = 'فشل';
       case HabitEventStatus.missed:
-        statusColor = Colors.red[300]!;
+        statusColor = colorScheme.error.withValues(alpha: 0.8);
         statusIcon = Icons.remove_circle_outline;
         statusLabel = 'فائت';
     }

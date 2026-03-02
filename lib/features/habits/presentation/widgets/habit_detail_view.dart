@@ -15,6 +15,7 @@ import 'habit_stat_card.dart';
 import 'habit_legend_dot.dart';
 import 'habit_mini_calendar.dart';
 import 'habit_event_tile.dart';
+import '../../../../core/theme/app_colors.dart';
 
 class HabitDetailView extends StatelessWidget {
   const HabitDetailView({super.key});
@@ -53,7 +54,7 @@ class HabitDetailView extends StatelessWidget {
                 expandedHeight: 160,
                 pinned: true,
                 backgroundColor: habitColor,
-                foregroundColor: Colors.white,
+                foregroundColor: colorScheme.onPrimary,
                 actions: [
                   IconButton(
                     icon: const Icon(Icons.edit_outlined),
@@ -76,8 +77,8 @@ class HabitDetailView extends StatelessWidget {
                       Expanded(
                         child: Text(
                           habit.name,
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                            color: colorScheme.onPrimary,
                             fontWeight: FontWeight.bold,
                             fontSize: 18,
                           ),
@@ -166,7 +167,7 @@ class HabitDetailView extends StatelessWidget {
                                   '${events.where((e) => e.status == HabitEventStatus.completed).length}',
                               unit: 'مرة',
                               icon: '✅',
-                              color: Colors.green,
+                              color: AppColors.success,
                               colorScheme: colorScheme,
                             ),
                           ),
@@ -199,12 +200,12 @@ class HabitDetailView extends StatelessWidget {
                                   ),
                                   const SizedBox(width: 16),
                                   HabitLegendDot(
-                                    color: Colors.orange[300]!,
+                                    color: AppColors.warning,
                                     label: 'متخطى',
                                   ),
                                   const SizedBox(width: 16),
                                   HabitLegendDot(
-                                    color: Colors.red[300]!,
+                                    color: colorScheme.error,
                                     label: 'فشل',
                                   ),
                                   const SizedBox(width: 16),

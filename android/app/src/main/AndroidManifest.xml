@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Required for rescheduling on reboot -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+    
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
 
-    <!-- Exact alarms — user will be prompted to grant this -->
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
 
-    <!-- Required for Android 13+ notification display -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
-    <!-- Helps keep the processor awake while the notification is being processed -->
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
 
     <application
-        android:label="multazim"
+        android:label="ملتزم"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
 
@@ -36,12 +36,10 @@
             </intent-filter>
         </activity>
 
-        <!-- Required to show scheduled notifications -->
         <receiver
             android:exported="false"
             android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver"/>
 
-        <!-- Required to reschedule notifications after reboot / app update -->
         <receiver
             android:exported="false"
             android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver">

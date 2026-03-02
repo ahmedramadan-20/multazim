@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import '../../domain/entities/export_config.dart';
+import '../../../core/theme/app_colors.dart';
 import '../cubit/export_cubit.dart';
 import '../cubit/export_state.dart';
 
@@ -67,7 +68,7 @@ class _ExportPageState extends State<ExportPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('تم التصدير بنجاح'),
-              backgroundColor: Colors.green,
+              backgroundColor: AppColors.success,
             ),
           );
         } else if (state is ExportError) {
@@ -193,12 +194,12 @@ class _ExportPageState extends State<ExportPage> {
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
                     icon: isLoading
-                        ? const SizedBox(
+                        ? SizedBox(
                             width: 18,
                             height: 18,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              color: Colors.white,
+                              color: colorScheme.surface,
                             ),
                           )
                         : const Icon(Icons.upload_file_rounded),

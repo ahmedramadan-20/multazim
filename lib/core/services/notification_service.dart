@@ -37,7 +37,7 @@ class NotificationService {
     tz.setLocalLocation(tz.getLocation(deviceTimezone.identifier));
 
     const androidSettings = AndroidInitializationSettings(
-      '@mipmap/ic_launcher',
+      '@drawable/ic_notification',
     );
 
     const initSettings = InitializationSettings(android: androidSettings);
@@ -89,7 +89,7 @@ class NotificationService {
         channelDescription: 'تذكيرات يومية لعاداتك',
         importance: Importance.high,
         priority: Priority.high,
-        icon: '@mipmap/ic_launcher',
+        icon: '@drawable/ic_notification',
         styleInformation: BigTextStyleInformation(''),
       ),
     );

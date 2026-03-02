@@ -20,9 +20,9 @@ class MilestoneCard extends StatelessWidget {
       margin: const EdgeInsets.only(left: 10),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.amber.withValues(alpha: 0.1),
+        color: Colors.amber.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
+        border: Border.all(color: Colors.amber.withValues(alpha: 0.15)),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,

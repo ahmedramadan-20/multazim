@@ -21,7 +21,7 @@ import 'app_routes.dart';
 import 'router_refresh_stream.dart';
 
 // ─────────────────────────────────────────────────
-// PAGE TRANSITION (No changes here)
+// PAGE TRANSITION
 // ─────────────────────────────────────────────────
 
 CustomTransitionPage<T> _buildPage<T>({
@@ -50,7 +50,7 @@ CustomTransitionPage<T> _buildPage<T>({
 }
 
 // ─────────────────────────────────────────────────
-// APP SHELL (No changes here)
+// APP SHELL
 // ─────────────────────────────────────────────────
 
 class AppShell extends StatelessWidget {
@@ -290,7 +290,7 @@ class AppShell extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────
-// UPDATED ROUTER LOGIC
+// ROUTER
 // ─────────────────────────────────────────────────
 
 const _publicRoutes = [AppRoutes.welcome, AppRoutes.login, AppRoutes.signUp];
@@ -298,35 +298,33 @@ const _publicRoutes = [AppRoutes.welcome, AppRoutes.login, AppRoutes.signUp];
 final _authRefreshStream = RouterRefreshStream(sl<AuthCubit>().stream);
 
 final appRouter = GoRouter(
-  initialLocation: AppRoutes.today,
+  initialLocation: AppRoutes.welcome, // ← was AppRoutes.today
   debugLogDiagnostics: true,
   refreshListenable: _authRefreshStream,
   redirect: (context, state) {
     final authState = sl<AuthCubit>().state;
     final currentPath = state.uri.path;
 
-    // 1. Initializing — don't redirect yet
+    // 1. Still initializing — don't redirect, stay on welcome
     if (authState is AuthInitial || authState is AuthLoading) return null;
 
     final isAuthenticated = authState is AuthAuthenticated;
     final isGuest = authState is AuthGuest;
     final isPublicRoute = _publicRoutes.contains(currentPath);
 
-    // 2. Fully Authenticated — Block ALL public routes
+    // 2. Authenticated — redirect away from public routes
     if (isAuthenticated) {
       if (isPublicRoute) return AppRoutes.today;
       return null;
     }
 
-    // 3. Guest Mode — Block ONLY 'Welcome'
-    // This allows them to reach Login/SignUp via the profile menu
+    // 3. Guest — redirect away from welcome only
     if (isGuest) {
       if (currentPath == AppRoutes.welcome) return AppRoutes.today;
       return null;
     }
 
-    // 4. Unauthenticated (Not Guest, Not Logged In)
-    // Send to welcome unless they are already viewing login/signup/welcome
+    // 4. Unauthenticated — redirect to welcome if not already on public route
     if (!isPublicRoute) return AppRoutes.welcome;
 
     return null;

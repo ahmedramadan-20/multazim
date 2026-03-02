@@ -26,7 +26,7 @@ class InsightCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: _getIconColor(colorScheme).withAlpha(40),
+                color: _getIconColor(colorScheme).withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(
@@ -84,15 +84,15 @@ class InsightCard extends StatelessWidget {
 
   Color _getBackgroundColor(ColorScheme colorScheme) {
     if (insight.priority == InsightPriority.high) {
-      return _getIconColor(colorScheme).withAlpha(15);
+      return _getIconColor(colorScheme).withValues(alpha: 0.15);
     }
-    return colorScheme.surfaceContainerHighest.withAlpha(50);
+    return colorScheme.surfaceContainerHighest.withValues(alpha: 0.15);
   }
 
   Color _getBorderColor(ColorScheme colorScheme) {
     if (insight.priority == InsightPriority.high) {
-      return _getIconColor(colorScheme).withAlpha(50);
+      return _getIconColor(colorScheme).withValues(alpha: 0.15);
     }
-    return colorScheme.outlineVariant.withAlpha(100);
+    return colorScheme.outlineVariant.withValues(alpha: 0.15);
   }
 }

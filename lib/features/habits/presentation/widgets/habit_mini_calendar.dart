@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../domain/entities/habit_event.dart';
+import '../../../../core/theme/app_colors.dart';
 
 class HabitMiniCalendar extends StatelessWidget {
   final List<HabitEvent> events;
@@ -40,10 +41,10 @@ class HabitMiniCalendar extends StatelessWidget {
         if (status == HabitEventStatus.completed) {
           cellColor = habitColor;
         } else if (status == HabitEventStatus.skipped) {
-          cellColor = Colors.orange[300]!;
+          cellColor = AppColors.warning;
         } else if (status == HabitEventStatus.failed ||
             status == HabitEventStatus.missed) {
-          cellColor = Colors.red[300]!;
+          cellColor = colorScheme.error;
         } else {
           cellColor = colorScheme.surfaceContainerHighest;
         }

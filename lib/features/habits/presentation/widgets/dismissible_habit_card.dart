@@ -49,7 +49,7 @@ class DismissibleHabitCard extends StatelessWidget {
               ),
               TextButton(
                 onPressed: () => Navigator.of(ctx).pop(true),
-                child: const Text('حذف', style: TextStyle(color: Colors.red)),
+                child: Text('حذف', style: TextStyle(color: colorScheme.error)),
               ),
             ],
           ),

@@ -16,7 +16,7 @@
 
 **Multazim** (ملتزم — "committed") is a habit tracking app designed to help users build and maintain positive daily habits. Built with **Clean Architecture** principles in Flutter, it emphasizes separation of concerns, testability, and scalability.
 
-> 🚧 **Status:** Phase 5.7 Complete — Robust Cloud Sync + Background Notifications (Android). Local persistence with ObjectBox, background remote sync with Supabase and connectivity-aware restoration.
+> 🚧 **Status:** Phase 5.8 Complete — Full Dark Mode Support + Branded Splash & Icons + Enhanced Background Notifications.
 
 ---
 
@@ -77,21 +77,17 @@ UI (Widget) → Cubit → UseCase → Repository (interface) → DataSource → 
 
 ## ✅ Features
 
-- **Authentication** — Email/password login and sign-up via Supabase with auth state persistence and session management.
-- **Cloud Sync** — Robust background sync with network restoration awareness. Automatically pushes guest data during account creation and migrates local changes to the cloud seamlessly.
-- **Habit Management** — CRUD for habits with customizable icons, colors, and difficulty.
-- **Advanced Scheduling** — Daily habits or "X times per week" (ISO-week compliant).
-- **Goal Types** — Binary (Yes/No) or Quantitative (e.g., "500ml water", "10 pages read").
-- **Streak Engine** — Sophisticated streak tracking with three algorithms (Perfect, Flexible, Consistency), automatic repairs, and milestone generation.
-- **Analytics Dashboard** — Advanced visualization with `fl_chart`:
-    - **Completion Trends**: 30-day line chart of performance.
-    - **Heatmap Calendar**: Year-view of habit consistency.
-    - **Metric Cards**: "Perfect Days", "Best Performance Day", "Active Streaks".
-- **Smart Insights** — Automated feedback on consistency, performance trends, and milestone-based streak records.
-- **Arabic UI** — Full RTL and localized content for all features.
-- **Background Notifications** — Reliable habit reminders on Android 14+ using exact alarms that fire even when the app is killed.
-- **App Icons** — Custom branded icons for both Android and iOS.
-
+- **Authentication** — Secure login/sign-up via Supabase with persistent sessions.
+- **Cloud Sync** — Seamless background synchronization with guest-to-account migration and connectivity awareness.
+- **Habit Management** — Complete CRUD with customizable attributes and dynamic completion logic.
+- **Advanced Scheduling** — ISO-week compliant scheduling for flexible frequency habits.
+- **Streak Engine (v2)** — Re-engineered streak calculations with Flexible and Consistency algorithms and automatic milestone generation.
+- **Analytics Dashboard** — High-performance charts using `fl_chart`, including heatmaps and contribution trends.
+- **Smart Insights** — Dynamic feedback based on performance history and streak records.
+- **Dark Mode Support** — Semantic color system following Material 3 guidelines for a premium dark experience.
+- **Branded Assets** — Custom-designed app icons and native splash screens for Android and iOS.
+- **Arabic Localization** — Full RTL support with Cairo typography and localized functional text.
+- **Reliable Notifications** — Exact alarm scheduling for reminders that persist across app restarts and system reboots.
 ---
 
 ## ⚡ Performance Optimizations
@@ -169,13 +165,12 @@ flutter run
 
 | Phase | Feature | Status |
 |-------|---------|--------|
-| 1 | Core Habit Loop (CRUD, tracking, ObjectBox) | ✅ Complete |
-| 2-3 | Analytics Dashboard & Charts | ✅ Complete |
-| 4 | Insights & Smart Feedback | ✅ Complete |
+| 1-4 | Core Tracking, Analytics & Insights | ✅ Complete |
 | 5 | Goals, Streaks & UX Overhaul | ✅ Complete |
-| 5.5 | Auth, Cloud Sync & Performance | ✅ Complete |
+| 5.5 | Auth & Cloud Sync | ✅ Complete |
+| 5.8 | UI Refactor, Dark Mode & Notifications | ✅ Complete |
 | 6 | Gamification (Levels, XP, Rewards) | 🔜 Next |
-| 7 | Social Features | 🔜 Planned |
+| 7 | Social Features & Group Habits | 🔜 Planned |
 
 ---
 

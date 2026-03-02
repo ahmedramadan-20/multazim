@@ -230,7 +230,7 @@ class _HabitCardState extends State<HabitCard>
                                             valueColor:
                                                 AlwaysStoppedAnimation<Color>(
                                                   _numericGoalReached
-                                                      ? Colors.green
+                                                      ? AppColors.success
                                                       : habitColor.withValues(
                                                           alpha: 0.8,
                                                         ),
@@ -246,7 +246,7 @@ class _HabitCardState extends State<HabitCard>
                                   style: TextStyle(
                                     fontSize: 11,
                                     color: _numericGoalReached
-                                        ? Colors.green
+                                        ? AppColors.success
                                         : colorScheme.onSurfaceVariant,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -304,7 +304,7 @@ class _HabitCardState extends State<HabitCard>
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.orange.withValues(alpha: 0.12),
+                          color: AppColors.warning.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Row(
@@ -317,7 +317,7 @@ class _HabitCardState extends State<HabitCard>
                               style: const TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.deepOrange,
+                                color: AppColors.warning,
                               ),
                             ),
                           ],
@@ -414,7 +414,7 @@ class _HabitCardState extends State<HabitCard>
                   width: 36,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.grey[300],
+                    color: Theme.of(context).colorScheme.outlineVariant,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),

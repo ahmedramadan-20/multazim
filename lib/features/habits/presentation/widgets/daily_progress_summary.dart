@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../../../../core/theme/app_colors.dart';
 
 class DailyProgressSummary extends StatelessWidget {
   final double progress;
@@ -35,7 +36,9 @@ class DailyProgressSummary extends StatelessWidget {
               Text(
                 '${(progress * 100).toInt()}%',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: progress >= 1.0 ? Colors.green : colorScheme.primary,
+                  color: progress >= 1.0
+                      ? AppColors.success
+                      : colorScheme.primary,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -53,7 +56,7 @@ class DailyProgressSummary extends StatelessWidget {
                 minHeight: 8,
                 backgroundColor: colorScheme.surfaceContainerHighest,
                 valueColor: AlwaysStoppedAnimation<Color>(
-                  progress >= 1.0 ? Colors.green : colorScheme.primary,
+                  progress >= 1.0 ? AppColors.success : colorScheme.primary,
                 ),
               ),
             ),

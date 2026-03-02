@@ -24,12 +24,12 @@ class AuthSubmitButton extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 16),
           ),
           child: isLoading
-              ? const SizedBox(
+              ? SizedBox(
                   height: 20,
                   width: 20,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    color: Colors.white,
+                    color: Theme.of(context).colorScheme.onPrimary,
                   ),
                 )
               : Text(label, style: const TextStyle(fontSize: 16)),
