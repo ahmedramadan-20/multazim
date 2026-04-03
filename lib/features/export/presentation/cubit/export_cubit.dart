@@ -1,6 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:share_plus/share_plus.dart';
-import '../../../features/habits/domain/repositories/habit_repository.dart';
+import '../../../habits/domain/repositories/habit_repository.dart';
 import '../../domain/entities/export_config.dart';
 import '../../domain/services/export_service.dart';
 import 'export_state.dart';

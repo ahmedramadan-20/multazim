@@ -4,7 +4,7 @@ import 'package:csv/csv.dart';
 import 'package:excel/excel.dart';
 import 'package:multazim/features/habits/domain/entities/habit.dart';
 import 'package:path_provider/path_provider.dart';
-import '../../../features/habits/domain/entities/habit_event.dart';
+import '../../../habits/domain/entities/habit_event.dart';
 import '../entities/export_config.dart';
 
 class ExportService {
