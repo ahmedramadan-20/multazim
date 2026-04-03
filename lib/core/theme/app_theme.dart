@@ -122,6 +122,14 @@ class AppTheme {
       thickness: 1,
     ),
 
+    bottomSheetTheme: const BottomSheetThemeData(
+      backgroundColor: AppColors.white,
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+    ),
+
     snackBarTheme: SnackBarThemeData(
       backgroundColor: AppColors.dark,
       contentTextStyle: const TextStyle(
@@ -268,6 +276,14 @@ class AppTheme {
     ),
 
     dividerTheme: const DividerThemeData(color: _darkBorder, thickness: 1),
+
+    bottomSheetTheme: const BottomSheetThemeData(
+      backgroundColor: _darkSurfaceContainer,
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+    ),
 
     snackBarTheme: SnackBarThemeData(
       backgroundColor: _darkSurfaceHighest,

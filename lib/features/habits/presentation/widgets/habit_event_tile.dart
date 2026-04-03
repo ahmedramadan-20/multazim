@@ -7,6 +7,9 @@ class HabitEventTile extends StatelessWidget {
   final HabitEvent event;
   final Color habitColor;
 
+  static final _dayFormatter = DateFormat('d', 'ar');
+  static final _monthFormatter = DateFormat('MMM', 'ar');
+
   const HabitEventTile({
     super.key,
     required this.event,
@@ -50,14 +53,14 @@ class HabitEventTile extends StatelessWidget {
             child: Column(
               children: [
                 Text(
-                  DateFormat('d', 'ar').format(event.date),
+                  _dayFormatter.format(event.date),
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 Text(
-                  DateFormat('MMM', 'ar').format(event.date),
+                  _monthFormatter.format(event.date),
                   style: TextStyle(
                     fontSize: 11,
                     color: colorScheme.onSurfaceVariant,

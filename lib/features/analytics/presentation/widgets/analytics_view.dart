@@ -27,9 +27,6 @@ class AnalyticsView extends StatelessWidget {
           }
           if (state is AnalyticsLoaded) {
             final summaries = state.summaries;
-            final heatmapData = {
-              for (var s in summaries) s.date: s.completionRate,
-            };
 
             return RefreshIndicator(
               onRefresh: () => context.read<AnalyticsCubit>().loadAnalytics(),
@@ -58,7 +55,7 @@ class AnalyticsView extends StatelessWidget {
                     SectionCard(
                           title: 'خريطة الالتزام',
                           child: HeatmapCalendar(
-                            data: heatmapData,
+                            data: state.heatmapData ?? {},
                             endDate: DateTime.now(),
                           ),
                         )

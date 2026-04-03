@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../domain/entities/insight.dart';
+import '../../../../core/theme/app_colors.dart';
 
 class InsightCard extends StatelessWidget {
   final Insight insight;
@@ -75,10 +76,10 @@ class InsightCard extends StatelessWidget {
 
   Color _getIconColor(ColorScheme colorScheme) {
     return switch (insight.type) {
-      InsightType.streakMilestone => Colors.orange,
+      InsightType.streakMilestone => AppColors.warning,
       InsightType.warning => colorScheme.error,
-      InsightType.trend => Colors.blue,
-      InsightType.general => Colors.purple,
+      InsightType.trend => colorScheme.primary,
+      InsightType.general => AppColors.accent,
     };
   }
 

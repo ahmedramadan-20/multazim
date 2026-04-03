@@ -58,16 +58,12 @@ class _NumericCompletionSheetState extends State<NumericCompletionSheet> {
     final unit = widget.habit.goal.unit ?? '';
     final habitColor = _parseColor(widget.habit.color);
 
-    return Container(
+    return Padding(
       padding: EdgeInsets.only(
         left: 24,
         right: 24,
         top: 24,
         bottom: MediaQuery.of(context).viewInsets.bottom + 24,
-      ),
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,

@@ -64,11 +64,11 @@ class _CreateHabitPageState extends State<CreateHabitPage> {
     AppColors.success,
     AppColors.warning,
     AppColors.danger,
-    Colors.pink,
-    Colors.teal,
-    Colors.indigo,
-    Colors.orange,
-    Colors.purple,
+    Color(0xFF0EA5E9), // sky
+    Color(0xFF8B5CF6), // violet
+    Color(0xFFEC4899), // pink
+    Color(0xFF14B8A6), // teal
+    Color(0xFFF97316), // orange
   ];
 
   @override

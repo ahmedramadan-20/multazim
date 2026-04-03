@@ -161,6 +161,24 @@ class HabitsCubit extends Cubit<HabitsState> {
         milestones[habit.id] = milestonesByHabit[habit.id] ?? [];
       }
 
+      // Pre-compute daily progress for the today page.
+      double totalTarget = 0;
+      double totalCurrent = 0;
+      for (final habit in habits) {
+        final event = todayEvents[habit.id];
+        if (habit.goal.type == HabitGoalType.numeric) {
+          final target = habit.goal.targetValue ?? 1.0;
+          final current = (event?.countValue ?? 0.0).clamp(0.0, target);
+          totalTarget += target;
+          totalCurrent += current;
+        } else {
+          totalTarget += 1.0;
+          if (event?.status == HabitEventStatus.completed) {
+            totalCurrent += 1.0;
+          }
+        }
+      }
+
       emit(
         HabitsLoaded(
           habits: habits,
@@ -168,6 +186,9 @@ class HabitsCubit extends Cubit<HabitsState> {
           streaks: streaks,
           weeklyProgress: weeklyProgress,
           milestones: milestones,
+          dailyProgress: totalTarget == 0 ? 0.0 : totalCurrent / totalTarget,
+          dailyTotalCurrent: totalCurrent,
+          dailyTotalTarget: totalTarget,
         ),
       );
 

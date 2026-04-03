@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:multazim/features/analytics/domain/entities/daily_summary.dart';
+import '../../../../core/theme/app_colors.dart';
 
 class StatisticsGrid extends StatefulWidget {
   final List<DailySummary> summaries;
@@ -133,6 +134,8 @@ class _StatisticsGridState extends State<StatisticsGrid> {
   Widget build(BuildContext context) {
     if (!_hasData) return const SizedBox.shrink();
 
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -148,25 +151,25 @@ class _StatisticsGridState extends State<StatisticsGrid> {
               title: 'الإنجاز',
               value: '${(_avgRate * 100).toStringAsFixed(1)}%',
               icon: Icons.pie_chart,
-              color: Colors.blue,
+              color: colorScheme.primary,
             ).animate().fadeIn(delay: 0.ms).slideX(begin: -0.1, end: 0),
             _StatCard(
               title: 'أيام مثالية',
               value: '$_totalPerfectDays',
               icon: Icons.star,
-              color: Colors.amber,
+              color: AppColors.warning,
             ).animate().fadeIn(delay: 100.ms).slideX(begin: 0.1, end: 0),
             _StatCard(
               title: 'الأفضل',
               value: _bestDayStr,
               icon: Icons.calendar_today,
-              color: Colors.green,
+              color: AppColors.success,
             ).animate().fadeIn(delay: 200.ms).slideX(begin: -0.1, end: 0),
             _StatCard(
               title: 'تتابع مثالي',
               value: '$_currentPerfectStreak',
               icon: Icons.local_fire_department,
-              color: Colors.orange,
+              color: AppColors.accent,
             ).animate().fadeIn(delay: 300.ms).slideX(begin: 0.1, end: 0),
           ],
         ),

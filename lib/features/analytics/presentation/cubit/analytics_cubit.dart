@@ -27,7 +27,6 @@ class AnalyticsCubit extends Cubit<AnalyticsState> {
   final WatchAllStreakRepairsUseCase _watchAllStreakRepairs;
   final WatchAllMilestonesUseCase _watchAllMilestones;
 
-  // Keep these for loadHabitDetails (specific habit queries)
   final GetHabitByIdForAnalyticsUseCase _getHabitById;
   final GetHabitEventsForAnalyticsUseCase _getHabitEvents;
   final GetHabitRepairsForAnalyticsUseCase _getHabitRepairs;
@@ -39,6 +38,12 @@ class AnalyticsCubit extends Cubit<AnalyticsState> {
   StreamSubscription? _dataSubscription;
   DateTime? _startDate;
   DateTime? _endDate;
+
+  // ── Cancellation token ──────────────────────────────
+  // Each _updateState run gets a unique token. If a newer run starts
+  // before the previous one finishes, the old one checks isClosed
+  // or compares tokens before emitting — prevents out-of-order states.
+  int _updateToken = 0;
 
   AnalyticsCubit({
     required AnalyticsRepository repository,
@@ -68,15 +73,21 @@ class AnalyticsCubit extends Cubit<AnalyticsState> {
   void _initReactivity() {
     _dataSubscription =
         Rx.combineLatest4(
-          _watchHabits(),
-          _watchAllEvents(),
-          _watchAllStreakRepairs(),
-          _watchAllMilestones(),
-          (habits, events, repairs, milestones) =>
-              (habits, events, repairs, milestones),
-        ).listen((data) {
-          _updateState(data.$1, data.$2, data.$3, data.$4);
-        });
+              _watchHabits(),
+              _watchAllEvents(),
+              _watchAllStreakRepairs(),
+              _watchAllMilestones(),
+              (habits, events, repairs, milestones) =>
+                  (habits, events, repairs, milestones),
+            )
+            // ── Debounce: wait 300ms after the last emission before processing.
+            // combineLatest4 fires once per individual stream emit — a single
+            // habit completion triggers habits + events streams back-to-back,
+            // which would cause 2 concurrent DB queries without this debounce.
+            .debounceTime(const Duration(milliseconds: 300))
+            .listen((data) {
+              _updateState(data.$1, data.$2, data.$3, data.$4);
+            });
   }
 
   @override
@@ -91,18 +102,24 @@ class AnalyticsCubit extends Cubit<AnalyticsState> {
     List<StreakRepair> allRepairs,
     List<Milestone> allMilestones,
   ) async {
+    // ── Cancellation token ───────────────────────────
+    // Increment before the async gap. If another _updateState call
+    // starts while this one awaits, the token will differ and this
+    // stale call will skip its emit.
+    final token = ++_updateToken;
+
     try {
       final now = DateTime.now();
       final endDate = _endDate ?? now;
       final startDate =
           _startDate ?? endDate.subtract(const Duration(days: 30));
 
-      // 1. Summaries (Still from repo for complex date logic, but repo could be optimized)
-      // Note: Repository still uses async queries, but we only call it ONCE here instead of N times.
       final summaries = await _repository.getSummaries(startDate, endDate);
 
-      // 2. Snapshots
-      final snapshots = <HabitAnalyticsSnapshot>[];
+      // Stale check — a newer update started while we were awaiting
+      if (isClosed || token != _updateToken) return;
+
+      // ── Snapshots ────────────────────────────────
       final eventsByHabit = <String, List<HabitEvent>>{};
       for (final e in allEvents) {
         (eventsByHabit[e.habitId] ??= []).add(e);
@@ -113,28 +130,21 @@ class AnalyticsCubit extends Cubit<AnalyticsState> {
         (repairsByHabit[r.habitId] ??= []).add(r);
       }
 
+      final snapshots = <HabitAnalyticsSnapshot>[];
       for (final habit in habits.where((h) => h.isActive)) {
         final events = eventsByHabit[habit.id] ?? [];
         final repairs = repairsByHabit[habit.id] ?? [];
         final streak = _streakService.calculateStreak(habit, events, repairs);
-
-        // Day of week stats - repository still does independent query,
-        // but we can calculate it in-memory now!
         final dowStats = _calculateDowStats(events);
 
-        final last30DaysEvents = events
-            .where(
-              (e) => e.date.isAfter(now.subtract(const Duration(days: 30))),
-            )
-            .toList();
-
-        final attempts = last30DaysEvents.length;
-        final completionRate = attempts == 0
+        final cutoff = now.subtract(const Duration(days: 30));
+        final last30 = events.where((e) => e.date.isAfter(cutoff)).toList();
+        final completionRate = last30.isEmpty
             ? 0.0
-            : last30DaysEvents
+            : last30
                       .where((e) => e.status == HabitEventStatus.completed)
                       .length /
-                  attempts;
+                  last30.length;
 
         snapshots.add(
           HabitAnalyticsSnapshot(
@@ -152,43 +162,58 @@ class AnalyticsCubit extends Cubit<AnalyticsState> {
         habitStats: snapshots,
       );
 
+      // Pre-build heatmap map here — not in build() (Fix #5)
+      final heatmapData = {for (var s in summaries) s.date: s.completionRate};
+
+      // Final stale check before emitting
+      if (isClosed || token != _updateToken) return;
+
       emit(
         AnalyticsLoaded(
           summaries: summaries,
+          heatmapData: heatmapData,
           insights: insights,
           milestones: allMilestones,
         ),
       );
     } catch (e) {
+      if (isClosed || token != _updateToken) return;
       emit(AnalyticsError(e.toString()));
     }
   }
 
   Map<int, double> _calculateDowStats(List<HabitEvent> events) {
-    final completionsByDay = <int, int>{for (int i = 1; i <= 7; i++) i: 0};
-    final totalEventsByDay = <int, int>{for (int i = 1; i <= 7; i++) i: 0};
+    final completions = <int, int>{for (int i = 1; i <= 7; i++) i: 0};
+    final totals = <int, int>{for (int i = 1; i <= 7; i++) i: 0};
 
-    for (var event in events) {
+    for (final event in events) {
       final day = event.date.weekday;
-      totalEventsByDay[day] = totalEventsByDay[day]! + 1;
+      totals[day] = totals[day]! + 1;
       if (event.status == HabitEventStatus.completed) {
-        completionsByDay[day] = completionsByDay[day]! + 1;
+        completions[day] = completions[day]! + 1;
       }
     }
 
     return {
       for (int i = 1; i <= 7; i++)
-        i: totalEventsByDay[i] == 0
-            ? 0.0
-            : completionsByDay[i]! / totalEventsByDay[i]!,
+        i: totals[i] == 0 ? 0.0 : completions[i]! / totals[i]!,
     };
   }
 
+  // ── Fix #3: loadAnalytics now actually triggers a refresh ────────────
+  // Previously it only set the date fields but never called _updateState,
+  // so date filtering was silently broken.
   Future<void> loadAnalytics([DateTime? start, DateTime? end]) async {
     _startDate = start;
     _endDate = end;
-    // Manual trigger - doesn't need to fetch anything, just relies on streams
-    // But we might want to emit loading if we're forcing a refresh
+    // Cancel current debounced stream and force immediate refresh
+    // by reading the latest stream values via the subscription.
+    // Since the stream doesn't expose last values directly, we emit
+    // loading and rely on the next combineLatest4 tick — which we
+    // force by cancelling and re-subscribing.
+    await _dataSubscription?.cancel();
+    emit(AnalyticsLoading());
+    _initReactivity();
   }
 
   Future<void> loadHabitDetails(String habitId) async {
@@ -196,29 +221,24 @@ class AnalyticsCubit extends Cubit<AnalyticsState> {
     try {
       final heatmap = await _repository.getHeatmapData(habitId);
       final stats = await _repository.getDayOfWeekStats(habitId);
-      final habit = await _getHabitById(habitId); // ← USE CASE
+      final habit = await _getHabitById(habitId);
       final insights = <Insight>[];
       final milestones = <Milestone>[];
 
       if (habit != null) {
-        final events = await _getHabitEvents(habitId); // ← USE CASE
-        final repairs = await _getHabitRepairs(habitId); // ← USE CASE
+        final events = await _getHabitEvents(habitId);
+        final repairs = await _getHabitRepairs(habitId);
         final streak = _streakService.calculateStreak(habit, events, repairs);
-        milestones.addAll(await _getHabitMilestones(habitId)); // ← USE CASE
+        milestones.addAll(await _getHabitMilestones(habitId));
 
-        final last30DaysEvents = events
-            .where(
-              (e) => e.date.isAfter(
-                DateTime.now().subtract(const Duration(days: 30)),
-              ),
-            )
-            .toList();
-        final completionRate = last30DaysEvents.isEmpty
+        final cutoff = DateTime.now().subtract(const Duration(days: 30));
+        final last30 = events.where((e) => e.date.isAfter(cutoff)).toList();
+        final completionRate = last30.isEmpty
             ? 0.0
-            : last30DaysEvents
+            : last30
                       .where((e) => e.status == HabitEventStatus.completed)
                       .length /
-                  last30DaysEvents.length;
+                  last30.length;
 
         final snapshot = HabitAnalyticsSnapshot(
           habitId: habitId,
@@ -233,6 +253,8 @@ class AnalyticsCubit extends Cubit<AnalyticsState> {
         );
       }
 
+      if (isClosed) return;
+
       emit(
         AnalyticsLoaded(
           summaries: [],
@@ -243,6 +265,7 @@ class AnalyticsCubit extends Cubit<AnalyticsState> {
         ),
       );
     } catch (e) {
+      if (isClosed) return;
       emit(AnalyticsError(e.toString()));
     }
   }

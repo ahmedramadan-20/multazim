@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 class TodayHeader extends StatelessWidget {
   const TodayHeader({super.key});
 
+  static final _dateFormatter = DateFormat('EEEE، d MMMM', 'ar');
+
   String _greeting() {
     final hour = DateTime.now().hour;
     if (hour < 12) return 'صباح الخير';
@@ -13,7 +15,7 @@ class TodayHeader extends StatelessWidget {
   }
 
   String _formattedDate() {
-    return DateFormat('EEEE، d MMMM', 'ar').format(DateTime.now());
+    return _dateFormatter.format(DateTime.now());
   }
 
   @override

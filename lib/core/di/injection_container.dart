@@ -59,8 +59,8 @@ import '../../features/analytics/domain/usecases/get_habit_milestones_for_analyt
 import '../../features/analytics/domain/usecases/get_habit_repairs_for_analytics_usecase.dart';
 import '../../features/analytics/domain/usecases/get_habits_for_analytics_usecase.dart';
 import '../../features/analytics/presentation/cubit/analytics_cubit.dart';
-import 'package:multazim/export/domain/services/export_service.dart';
-import 'package:multazim/export/presentation/cubit/export_cubit.dart';
+import 'package:multazim/features/export/domain/services/export_service.dart';
+import 'package:multazim/features/export/presentation/cubit/export_cubit.dart';
 
 final sl = GetIt.instance;
 

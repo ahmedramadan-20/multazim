@@ -4,6 +4,8 @@ import 'package:intl/intl.dart';
 class TodayDateStrip extends StatelessWidget {
   const TodayDateStrip({super.key});
 
+  static final _dayFormatter = DateFormat('E', 'ar');
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -33,7 +35,7 @@ class TodayDateStrip extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    DateFormat('E', 'ar').format(date),
+                    _dayFormatter.format(date),
                     style: TextStyle(
                       color: isToday
                           ? colorScheme.onPrimary

@@ -76,8 +76,9 @@ class NotificationService {
 
     // Habit is inactive or has ended — nothing to schedule
     if (!habit.isActive) return;
-    if (habit.endDate != null && habit.endDate!.isBefore(DateTime.now()))
+    if (habit.endDate != null && habit.endDate!.isBefore(DateTime.now())) {
       return;
+    }
 
     final notifId = _notifIdFromHabitId(habit.id);
     final reminderTime = habit.reminderTime!;

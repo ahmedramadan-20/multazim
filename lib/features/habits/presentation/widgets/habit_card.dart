@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 import '../../domain/entities/habit.dart';
 import '../../domain/entities/habit_event.dart';
 import '../../domain/entities/streak.dart';
@@ -24,6 +25,8 @@ class HabitCard extends StatefulWidget {
     this.streak,
     this.weeklyProgress,
   });
+
+  static final _timeFormatter = DateFormat('h:mm a', 'ar');
 
   static Color parseHabitColor(String colorString) {
     try {
@@ -97,6 +100,14 @@ class _HabitCardState extends State<HabitCard>
   bool get _effectivelyCompleted =>
       isCompleted && (!_isNumeric || _numericGoalReached);
 
+  /// Returns a short "آخر إنجاز" string if completed today
+  String? get _lastCompletedLabel {
+    if (widget.todayEvent == null) return null;
+    if (!isCompleted && !isSkipped) return null;
+    final time = widget.todayEvent!.createdAt;
+    return HabitCard._timeFormatter.format(time);
+  }
+
   Future<void> _handleTap(BuildContext context) async {
     if (_effectivelyCompleted || isSkipped) return;
 
@@ -106,7 +117,6 @@ class _HabitCardState extends State<HabitCard>
       final result = await showModalBottomSheet<int>(
         context: context,
         isScrollControlled: true,
-        backgroundColor: Colors.transparent,
         builder: (_) => NumericCompletionSheet(
           habit: widget.habit,
           previousValue: _currentCount,
@@ -131,6 +141,8 @@ class _HabitCardState extends State<HabitCard>
   Widget build(BuildContext context) {
     final habitColor = HabitCard.parseHabitColor(widget.habit.color);
     final colorScheme = Theme.of(context).colorScheme;
+    final hasStreak =
+        widget.streak != null && widget.streak!.current > 0 && !isSkipped;
 
     return Stack(
       alignment: Alignment.center,
@@ -138,7 +150,7 @@ class _HabitCardState extends State<HabitCard>
         ScaleTransition(
           scale: _scaleAnimation,
           child: Card(
-            margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
+            margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 16),
             elevation: _effectivelyCompleted ? 0 : 1,
             color: _effectivelyCompleted
                 ? habitColor.withValues(alpha: 0.08)
@@ -156,13 +168,17 @@ class _HabitCardState extends State<HabitCard>
               onTap: () => _handleTap(context),
               onLongPress: () => _showOptionsSheet(context),
               child: Padding(
-                padding: const EdgeInsets.all(14),
+                // ── Reduced padding for compact look ──
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
                 child: Row(
                   children: [
                     // ── Icon ──────────────────────────
                     Container(
-                      width: 48,
-                      height: 48,
+                      width: 44,
+                      height: 44,
                       decoration: BoxDecoration(
                         color: habitColor.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(12),
@@ -170,43 +186,94 @@ class _HabitCardState extends State<HabitCard>
                       alignment: Alignment.center,
                       child: Text(
                         widget.habit.icon,
-                        style: const TextStyle(fontSize: 24),
+                        style: const TextStyle(fontSize: 22),
                       ),
                     ),
-                    const SizedBox(width: 14),
+                    const SizedBox(width: 12),
 
                     // ── Name & Details ────────────────
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            widget.habit.name,
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-                              decoration: _effectivelyCompleted || isSkipped
-                                  ? TextDecoration.lineThrough
-                                  : null,
-                              color: _effectivelyCompleted || isSkipped
-                                  ? colorScheme.onSurfaceVariant
-                                  : colorScheme.onSurface,
-                            ),
-                          ),
-                          const SizedBox(height: 3),
-                          Text(
-                            HabitTranslationHelper.categoryName(
-                              widget.habit.category,
-                            ),
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: colorScheme.onSurfaceVariant,
-                            ),
+                          // ── Name row with streak badge ──
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  widget.habit.name,
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                    decoration:
+                                        _effectivelyCompleted || isSkipped
+                                        ? TextDecoration.lineThrough
+                                        : null,
+                                    color: _effectivelyCompleted || isSkipped
+                                        ? colorScheme.onSurfaceVariant
+                                        : colorScheme.onSurface,
+                                  ),
+                                ),
+                              ),
+                              // ── Streak badge — prominent, next to name ──
+                              if (hasStreak) ...[
+                                const SizedBox(width: 6),
+                                _StreakBadge(
+                                  streak: widget.streak!.current,
+                                  habitColor: habitColor,
+                                ),
+                              ],
+                            ],
                           ),
 
-                          // Numeric progress
+                          // ── Category + last completed ──
+                          const SizedBox(height: 2),
+                          Row(
+                            children: [
+                              Text(
+                                HabitTranslationHelper.categoryName(
+                                  widget.habit.category,
+                                ),
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                              if (_lastCompletedLabel != null) ...[
+                                Text(
+                                  ' · ',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                                Icon(
+                                  isSkipped
+                                      ? Icons.skip_next_rounded
+                                      : Icons.check_rounded,
+                                  size: 11,
+                                  color: isSkipped
+                                      ? AppColors.warning
+                                      : habitColor,
+                                ),
+                                const SizedBox(width: 2),
+                                Text(
+                                  _lastCompletedLabel!,
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: isSkipped
+                                        ? AppColors.warning
+                                        : habitColor,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+
+                          // ── Numeric progress ──────────
                           if (_isNumeric) ...[
-                            const SizedBox(height: 8),
+                            const SizedBox(height: 7),
                             Row(
                               children: [
                                 Expanded(
@@ -214,7 +281,6 @@ class _HabitCardState extends State<HabitCard>
                                     borderRadius: BorderRadius.circular(4),
                                     child: TweenAnimationBuilder<double>(
                                       tween: Tween(
-                                        begin: 0,
                                         end: (_currentCount / _numericTarget)
                                             .clamp(0.0, 1.0),
                                       ),
@@ -235,7 +301,7 @@ class _HabitCardState extends State<HabitCard>
                                                           alpha: 0.8,
                                                         ),
                                                 ),
-                                            minHeight: 5,
+                                            minHeight: 4,
                                           ),
                                     ),
                                   ),
@@ -255,9 +321,9 @@ class _HabitCardState extends State<HabitCard>
                             ),
                           ],
 
-                          // Weekly progress
+                          // ── Weekly progress ───────────
                           if (!_isNumeric && widget.weeklyProgress != null) ...[
-                            const SizedBox(height: 8),
+                            const SizedBox(height: 7),
                             Row(
                               children: [
                                 Expanded(
@@ -293,40 +359,8 @@ class _HabitCardState extends State<HabitCard>
                       ),
                     ),
 
-                    // ── Streak Badge ──────────────────
-                    if (widget.streak != null &&
-                        widget.streak!.current > 0 &&
-                        !isSkipped) ...[
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.warning.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Text('🔥', style: TextStyle(fontSize: 13)),
-                            const SizedBox(width: 3),
-                            Text(
-                              '${widget.streak!.current}',
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.warning,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-
                     // ── Status Icon ───────────────────
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 10),
                     AnimatedSwitcher(
                       duration: const Duration(milliseconds: 250),
                       transitionBuilder: (child, animation) => ScaleTransition(
@@ -348,7 +382,12 @@ class _HabitCardState extends State<HabitCard>
           confettiController: _confettiController,
           blastDirectionality: BlastDirectionality.explosive,
           shouldLoop: false,
-          colors: [habitColor, Colors.orange, Colors.pink, Colors.green],
+          colors: [
+            habitColor,
+            AppColors.warning,
+            AppColors.accent,
+            AppColors.success,
+          ],
         ),
       ],
     );
@@ -360,7 +399,7 @@ class _HabitCardState extends State<HabitCard>
         Icons.check_circle,
         key: const ValueKey('completed'),
         color: habitColor,
-        size: 30,
+        size: 28,
       );
     }
     if (isSkipped) {
@@ -368,14 +407,14 @@ class _HabitCardState extends State<HabitCard>
         Icons.skip_next,
         key: const ValueKey('skipped'),
         color: colorScheme.onSurfaceVariant,
-        size: 30,
+        size: 28,
       );
     }
     if (_isNumeric && _currentCount > 0) {
       return SizedBox(
         key: const ValueKey('partial'),
-        width: 30,
-        height: 30,
+        width: 28,
+        height: 28,
         child: Stack(
           alignment: Alignment.center,
           children: [
@@ -385,7 +424,7 @@ class _HabitCardState extends State<HabitCard>
               backgroundColor: colorScheme.surfaceContainerHighest,
               valueColor: AlwaysStoppedAnimation<Color>(habitColor),
             ),
-            Icon(Icons.edit, color: habitColor, size: 12),
+            Icon(Icons.edit, color: habitColor, size: 11),
           ],
         ),
       );
@@ -394,7 +433,7 @@ class _HabitCardState extends State<HabitCard>
       Icons.circle_outlined,
       key: const ValueKey('empty'),
       color: colorScheme.outlineVariant,
-      size: 30,
+      size: 28,
     );
   }
 
@@ -500,6 +539,48 @@ class _HabitCardState extends State<HabitCard>
             const SizedBox(height: 8),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────
+// STREAK BADGE — prominent, pill-shaped
+// ─────────────────────────────────────────────────
+
+class _StreakBadge extends StatelessWidget {
+  final int streak;
+  final Color habitColor;
+
+  const _StreakBadge({required this.streak, required this.habitColor});
+
+  @override
+  Widget build(BuildContext context) {
+    // Use a warmer fire color for high streaks
+    final isHot = streak >= 7;
+    final badgeColor = isHot ? AppColors.danger : AppColors.warning;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+      decoration: BoxDecoration(
+        color: badgeColor.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: badgeColor.withValues(alpha: 0.4), width: 1),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text('🔥', style: TextStyle(fontSize: isHot ? 13 : 11)),
+          const SizedBox(width: 3),
+          Text(
+            '$streak',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: badgeColor,
+            ),
+          ),
+        ],
       ),
     );
   }

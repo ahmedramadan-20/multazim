@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:developer' as developer;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:multazim/core/di/injection_container.dart';
@@ -22,6 +23,8 @@ class AuthCubit extends Cubit<AuthState> {
   final AuthRepository authRepository;
   final SyncService syncService;
   final HabitLocalDataSource localDataSource;
+
+  StreamSubscription? _authSubscription;
 
   AuthCubit({
     required this.signIn,
@@ -72,7 +75,7 @@ class AuthCubit extends Cubit<AuthState> {
   // ─────────────────────────────────────────────────
 
   void listenToAuthChanges() {
-    authRepository.authStateChanges.listen((user) {
+    _authSubscription = authRepository.authStateChanges.listen((user) {
       if (isClosed) return;
       if (user != null) {
         emit(AuthAuthenticated(user));
@@ -82,6 +85,12 @@ class AuthCubit extends Cubit<AuthState> {
         }
       }
     });
+  }
+
+  @override
+  Future<void> close() {
+    _authSubscription?.cancel();
+    return super.close();
   }
 
   // ─────────────────────────────────────────────────
@@ -141,9 +150,13 @@ class AuthCubit extends Cubit<AuthState> {
   Future<void> signOutUser() async {
     emit(AuthLoading());
     try {
-      await syncService.pushLocalData().catchError((e) {
-        developer.log('Logout sync failed: $e', name: 'multazim.sync');
-      });
+      // Run sync and a minimum delay in parallel to ensure the loading spinner is visible
+      await Future.wait([
+        syncService.pushLocalData().catchError((e) {
+          developer.log('Logout sync failed: $e', name: 'multazim.sync');
+        }),
+        Future.delayed(const Duration(milliseconds: 600)),
+      ]);
       await signOut();
       await localDataSource.clearAllLocalData();
       await _saveGuestMode(false);

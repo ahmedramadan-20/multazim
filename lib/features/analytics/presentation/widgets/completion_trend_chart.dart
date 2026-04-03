@@ -3,22 +3,50 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:multazim/features/analytics/domain/entities/daily_summary.dart';
 
-class CompletionTrendChart extends StatelessWidget {
+/// Line chart showing completion rate trend over time.
+///
+/// Converts to [StatefulWidget] so the sort happens once in
+/// [initState] / [didUpdateWidget] instead of on every animation
+/// frame (~90× during the 1.5 s TweenAnimationBuilder).
+class CompletionTrendChart extends StatefulWidget {
   final List<DailySummary> summaries;
 
   const CompletionTrendChart({super.key, required this.summaries});
 
   @override
+  State<CompletionTrendChart> createState() => _CompletionTrendChartState();
+}
+
+class _CompletionTrendChartState extends State<CompletionTrendChart> {
+  late List<DailySummary> _sortedData;
+
+  @override
+  void initState() {
+    super.initState();
+    _sortedData = _sorted(widget.summaries);
+  }
+
+  @override
+  void didUpdateWidget(covariant CompletionTrendChart old) {
+    super.didUpdateWidget(old);
+    if (widget.summaries != old.summaries) {
+      _sortedData = _sorted(widget.summaries);
+    }
+  }
+
+  List<DailySummary> _sorted(List<DailySummary> s) =>
+      List.of(s)..sort((a, b) => a.date.compareTo(b.date));
+
+  @override
   Widget build(BuildContext context) {
-    if (summaries.isEmpty) {
+    if (_sortedData.isEmpty) {
       return const SizedBox(
         height: 200,
         child: Center(child: Text('لا توجد بيانات لمخطط الاتجاه')),
       );
     }
 
-    // Sort by date just in case
-    final data = List.of(summaries)..sort((a, b) => a.date.compareTo(b.date));
+    final data = _sortedData;
 
     return Container(
       height: 240,
@@ -128,7 +156,7 @@ class CompletionTrendChart extends StatelessWidget {
                   preventCurveOverShooting: true,
                   spots: visibleSpots,
                   isCurved: true,
-                  color: Theme.of(context).primaryColor,
+                  color: Theme.of(context).colorScheme.primary,
                   barWidth: 3,
                   isStrokeCapRound: true,
                   dotData: const FlDotData(show: false),
@@ -136,7 +164,7 @@ class CompletionTrendChart extends StatelessWidget {
                     show: true,
                     color: Theme.of(
                       context,
-                    ).primaryColor.withValues(alpha: 0.1),
+                    ).colorScheme.primary.withValues(alpha: 0.1),
                   ),
                 ),
               ],

@@ -30,12 +30,20 @@ final class HabitsLoaded extends HabitsState {
   /// Map habitId → list of achieved milestones.
   final Map<String, List<Milestone>> milestones;
 
+  /// Pre-computed daily progress values.
+  final double dailyProgress;
+  final double dailyTotalCurrent;
+  final double dailyTotalTarget;
+
   const HabitsLoaded({
     required this.habits,
     required this.todayEvents,
     required this.streaks,
     required this.weeklyProgress,
     required this.milestones,
+    required this.dailyProgress,
+    required this.dailyTotalCurrent,
+    required this.dailyTotalTarget,
   });
 
   @override
@@ -45,6 +53,9 @@ final class HabitsLoaded extends HabitsState {
     streaks,
     weeklyProgress,
     milestones,
+    dailyProgress,
+    dailyTotalCurrent,
+    dailyTotalTarget,
   ];
 }
 

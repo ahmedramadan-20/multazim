@@ -144,7 +144,7 @@ class HabitDetailView extends StatelessWidget {
                               value: '${streak.current}',
                               unit: 'يوم',
                               icon: '🔥',
-                              color: Colors.deepOrange,
+                              color: AppColors.danger,
                               colorScheme: colorScheme,
                             ),
                           ),
@@ -155,7 +155,7 @@ class HabitDetailView extends StatelessWidget {
                               value: '${streak.longest}',
                               unit: 'يوم',
                               icon: '🏆',
-                              color: Colors.amber[700]!,
+                              color: AppColors.warning,
                               colorScheme: colorScheme,
                             ),
                           ),
@@ -278,13 +278,18 @@ class HabitDetailView extends StatelessWidget {
                   : SliverList(
                       delegate: SliverChildBuilderDelegate((context, index) {
                         final event = events[index];
-                        return HabitEventTile(
-                              event: event,
-                              habitColor: habitColor,
-                            )
-                            .animate(delay: (800 + (index * 50)).ms)
-                            .fadeIn(duration: 400.ms)
-                            .slideX(begin: 0.1, end: 0);
+                        final tile = HabitEventTile(
+                          event: event,
+                          habitColor: habitColor,
+                        );
+                        // Only animate the first 10 visible tiles
+                        if (index < 10) {
+                          return tile
+                              .animate(delay: (200 + (index * 50)).ms)
+                              .fadeIn(duration: 400.ms)
+                              .slideX(begin: 0.1, end: 0);
+                        }
+                        return tile;
                       }, childCount: events.length),
                     ),
 

@@ -30,7 +30,7 @@ class WeeklyProgressService {
     int target;
     switch (habit.schedule.type) {
       case HabitScheduleType.daily:
-        target = 7;
+        target = now.weekday;
         break;
       case HabitScheduleType.timesPerWeek:
         target = habit.schedule.timesPerWeek ?? 1;
