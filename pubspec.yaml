@@ -74,6 +74,7 @@ dependencies:
 # DEV-ONLY DEPENDENCIES (not included in release build)
 # ─────────────────────────────────────────────────
   flutter_native_splash: any
+  url_launcher: ^6.3.2
 dev_dependencies:
   flutter_test:
     sdk: flutter
