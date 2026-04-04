@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'feature_row.dart';
 import 'welcome_actions.dart';
-import '../../../../core/theme/app_colors.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../core/theme/app_colors.dart';
 class WelcomeView extends StatelessWidget {
   const WelcomeView({super.key});
 
@@ -90,7 +91,6 @@ class WelcomeView extends StatelessWidget {
                   .fadeIn()
                   .slideY(begin: 0.1, end: 0),
 
-              const SizedBox(height: 16),
               Text(
                 'تملك بياناتك بالكامل',
                 style: theme.textTheme.bodySmall?.copyWith(
@@ -98,6 +98,27 @@ class WelcomeView extends StatelessWidget {
                 ),
                 textAlign: TextAlign.center,
               ).animate(delay: 1100.ms).fadeIn(),
+              const SizedBox(height: 8),
+              TextButton(
+                onPressed: () {
+                  launchUrl(
+                    Uri.parse('https://ahmedramadan-20.github.io/multazim-privacy/'),
+                    mode: LaunchMode.externalApplication,
+                  );
+                },
+                style: TextButton.styleFrom(
+                  minimumSize: Size.zero,
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                child: Text(
+                  'سياسة الخصوصية',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              ).animate(delay: 1200.ms).fadeIn(),
               const SizedBox(height: 24),
             ],
           ),

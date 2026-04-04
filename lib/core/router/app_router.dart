@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:multazim/features/analytics/presentation/pages/analytics_page.dart';
 import 'package:multazim/features/analytics/presentation/pages/habit_detail_analytics_page.dart';
 import '../../features/auth/presentation/cubit/auth_cubit.dart';
@@ -175,6 +176,30 @@ class AppShell extends StatelessWidget {
                     const Divider(),
                     const SizedBox(height: 4),
                   ],
+
+                  ListTile(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    leading: Icon(
+                      Icons.privacy_tip_outlined,
+                      color: colorScheme.primary,
+                    ),
+                    title: Text(
+                      'سياسة الخصوصية',
+                      style: TextStyle(
+                        color: colorScheme.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    onTap: () {
+                      Navigator.pop(context);
+                      launchUrl(
+                        Uri.parse('https://ahmedramadan-20.github.io/multazim-privacy/'),
+                        mode: LaunchMode.externalApplication,
+                      );
+                    },
+                  ),
 
                   ListTile(
                     shape: RoundedRectangleBorder(
